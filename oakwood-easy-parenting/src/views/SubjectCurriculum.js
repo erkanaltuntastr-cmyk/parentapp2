@@ -2,6 +2,7 @@ import { getActiveChild } from '../usecases/children.js';
 import { addSubject, listSubjects } from '../usecases/subjects.js';
 import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/curriculum.js';
 import { addAssignment } from '../usecases/assignments.js';
+import { getState } from '../state/appState.js';
 
 function getCurrentSchoolWeek(){
   const now = new Date();
@@ -18,21 +19,28 @@ function parseWeekStart(estimatedWeek){
   return m ? Number(m[0]) : null;
 }
 
+const SAMPLE_SUBJECTS = [
+  'English',
+  'Mathematics',
+  'Science',
+  'History',
+  'Geography',
+  'Art and Design',
+  'Physical Education'
+];
+
 export function SubjectCurriculum(){
   const section = document.createElement('section');
   section.className = 'card';
 
-  const child = getActiveChild();
+  let child = getActiveChild();
   if (!child) {
     location.hash = '#/add-child';
     return section;
   }
 
-  const name = (child.name || '').trim();
-  const title = name ? `${name} - curriculum` : 'Your child - curriculum';
-
   section.innerHTML = `
-    <h1 class="h1">${title}</h1>
+    <h1 class="h1"></h1>
     <p class="subtitle">Select a subject to view topics for the current school week.</p>
     <div class="curriculum-body"></div>
     <div class="actions" style="margin-top: var(--space-4);">
@@ -44,12 +52,19 @@ export function SubjectCurriculum(){
   `;
 
   const body = section.querySelector('.curriculum-body');
-  const year = child.year;
+  const titleEl = section.querySelector('.h1');
+  const setTitle = current => {
+    const name = (current?.name || '').trim();
+    titleEl.textContent = name ? `${name} - curriculum` : 'Your child - curriculum';
+  };
+  setTitle(child);
+  let year = child.year;
   let available = [];
   let selected = '';
   let topics = [];
   let showSubtopics = false;
   let modalOpen = false;
+  let isSample = false;
 
   const render = () => {
     body.innerHTML = '';
@@ -69,8 +84,19 @@ export function SubjectCurriculum(){
       boxWrap.appendChild(btn);
     });
     body.appendChild(boxWrap);
+    if (isSample) {
+      const banner = document.createElement('div');
+      banner.className = 'empty-state';
+      banner.innerHTML = `
+        <p class="subtitle">Curriculum for this year is coming soon.</p>
+        <a class="button-secondary" href="#/messages">Contact Support</a>
+      `;
+      body.appendChild(banner);
+    }
 
-    if (!selected) return;
+    if (!selected) {
+      return;
+    }
 
     const added = listSubjects(child.id);
     const addBtn = document.createElement('button');
@@ -203,13 +229,40 @@ export function SubjectCurriculum(){
     body.innerHTML = '<p class="subtitle">Loading curriculum...</p>';
     await loadCurriculum();
     available = await getAvailableSubjects(year);
+    isSample = false;
     if (!available.length) {
-      body.innerHTML = '<p class="subtitle">No subjects found for this year.</p>';
-      return;
+      available = [...SAMPLE_SUBJECTS];
+      isSample = true;
     }
     render();
   };
 
   init();
+
+  let activeId = getState().activeChildId;
+  const onHash = () => {
+    if (location.hash !== '#/subjects') {
+      clearInterval(watchId);
+      window.removeEventListener('hashchange', onHash);
+    }
+  };
+  window.addEventListener('hashchange', onHash);
+  const watchId = setInterval(async () => {
+    const nextId = getState().activeChildId;
+    if (nextId !== activeId) {
+      activeId = nextId;
+      child = getActiveChild();
+      if (!child) {
+        location.hash = '#/add-child';
+        return;
+      }
+      setTitle(child);
+      year = child.year;
+      selected = '';
+      topics = [];
+      await init();
+    }
+  }, 300);
+
   return section;
 }

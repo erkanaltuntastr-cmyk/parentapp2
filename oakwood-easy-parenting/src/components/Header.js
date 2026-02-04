@@ -4,10 +4,14 @@ import { getUnreadCountForUser } from '../usecases/messages.js';
 
 export function Header(){
   const wrap = document.createElement('div');
-  const isChild = user?.role === 'child';
-  wrap.className = `global-header${isChild ? ' child-header' : ''}`;
-
   const user = getActiveUser();
+  const isChild = user?.role === 'child';
+  const isAdmin = user?.isAdmin;
+  const homeHref = isAdmin ? '#/admin'
+    : isChild ? '#/child-dashboard'
+    : user ? '#/select-child'
+    : '#/welcome';
+  wrap.className = `global-header${isChild ? ' child-header' : ''}`;
   const parent = getState().parent || null;
   const name = parent?.name
     ? `${parent.name} ${parent.surname || ''}`.trim()
@@ -16,10 +20,10 @@ export function Header(){
   const unread = user && !user.isAdmin && !isChild ? getUnreadCountForUser(user.username) : 0;
 
   wrap.innerHTML = `
-    <div class="header-left">
+    <a class="header-left brand-link" href="${homeHref}">
       <img src="./src/assets/logo.svg" alt="Oakwood logo" class="logo" />
       <span class="brand-line-1">Oakwood</span>
-    </div>
+    </a>
     <nav class="header-nav" aria-label="Primary">
       ${isChild
         ? `<a href="#/child-dashboard">My Progress</a>`
@@ -46,10 +50,15 @@ export function Header(){
 
   const btn = wrap.querySelector('.avatar-btn');
   const menu = wrap.querySelector('.header-menu');
+  const headerRight = wrap.querySelector('.header-right');
   btn.addEventListener('click', () => {
     const open = !menu.hidden;
     menu.hidden = open;
     btn.setAttribute('aria-expanded', String(!open));
+  });
+  headerRight.addEventListener('mouseleave', () => {
+    menu.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
   });
 
   wrap.querySelector('[data-role="logout"]').addEventListener('click', () => {

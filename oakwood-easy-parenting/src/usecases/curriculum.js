@@ -64,7 +64,7 @@ export async function loadCurriculum(){
       const inner = raw.startsWith('"') && raw.endsWith('"') ? raw.slice(1, -1) : raw;
       const cols = parseCsvLine(inner);
       return {
-        year: (cols[idx.year] || '').trim(),
+        year: normaliseYear((cols[idx.year] || '').trim()),
         subject: (cols[idx.subject] || '').trim(),
         mainTopic: (cols[idx.main] || '').trim(),
         subtopic: (cols[idx.sub] || '').trim(),

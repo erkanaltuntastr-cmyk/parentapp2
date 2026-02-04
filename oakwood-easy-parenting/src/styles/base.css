@@ -58,7 +58,8 @@ body{
   align-items:center;
   gap: var(--space-3);
 }
-.header-left{ display:flex; align-items:center; gap: var(--space-2); font-weight:600; }
+.header-left{ display:flex; align-items:center; gap: var(--space-2); font-weight:600; text-decoration:none; color: inherit; }
+.brand-link:hover{ opacity: 0.85; }
 .header-nav{ display:flex; gap: var(--space-3); justify-content:center; }
 .header-nav a{ text-decoration:none; color: var(--ink-700); font-weight:600; }
 .header-nav a:hover{ color: var(--ink-900); }
