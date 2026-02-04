@@ -1,14 +1,13 @@
 import { getState, saveState } from '../state/appState.js';
 
-export function createChild({ name, dob, school, year }){
+export function addChild(childData){
   const state = getState();
   const id = `c_${Date.now()}`;
+  const child = { id, ...childData };
   const next = {
     ...state,
-    children: [
-      ...state.children,
-      { id, name, dob, school, year }
-    ]
+    children: [...state.children, child],
+    activeChildId: id
   };
   saveState(next);
   return id;

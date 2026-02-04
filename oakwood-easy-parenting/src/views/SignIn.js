@@ -1,14 +1,20 @@
+import { getState } from '../state/appState.js';
+import { loginUser } from '../usecases/auth.js';
+
 export function SignIn(){
   const section = document.createElement('section');
   section.className = 'card';
+  const users = getState().users || [];
   section.innerHTML = `
-    <h1 class="h1">Sign in</h1>
+    <h1 class="h1">Sign In</h1>
     <p class="subtitle">Use your local parent profile.</p>
 
     <form class="form">
       <div class="field">
         <label for="username">Username</label>
-        <input id="username" name="username" type="text" autocomplete="off" required />
+        <select id="username" name="username" required>
+          ${users.map(u => `<option value="${u.username}">${u.username}</option>`).join('')}
+        </select>
       </div>
 
       <div class="field">
@@ -17,17 +23,23 @@ export function SignIn(){
       </div>
 
       <div class="actions-row">
-        <button type="submit" class="button">Sign in</button>
-        <a class="button-secondary" href="#/welcome">Back to welcome</a>
+        <button type="submit" class="button">Sign In</button>
+        <a class="button-secondary" href="#/register">Create New Profile</a>
       </div>
-      <small class="help">This profile is stored on this device. If you forget your password, it cannot be recovered.</small>
     </form>
   `;
 
   const form = section.querySelector('form');
-  form.addEventListener('submit', e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
-    alert('Sign in is coming next.');
+    const username = form.username.value;
+    const password = form.password.value;
+    try {
+      await loginUser(username, password);
+      location.hash = '#/welcome';
+    } catch (err) {
+      alert(err.message || 'Sign in failed.');
+    }
   });
 
   return section;

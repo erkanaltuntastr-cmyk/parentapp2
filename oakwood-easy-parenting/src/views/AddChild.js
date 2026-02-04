@@ -1,16 +1,16 @@
-﻿import { loadCsvSchools } from '../lib/loadCsv.js';
-import { createChild, setActiveChild } from '../usecases/children.js';
+﻿import { addChild } from '../usecases/children.js';
+import { loadCsvSchools } from '../lib/loadCsv.js';
 
 export function AddChild(){
   const section = document.createElement('section');
   section.className = 'card';
   section.innerHTML = `
-    <h1 class="h1" id="add-child-title">Add your child</h1>
+    <h1 class="h1" id="add-child-title">Add Child</h1>
     <p class="subtitle" id="add-child-desc">Provide the basics. You can add more details later.</p>
 
     <form class="form" aria-labelledby="add-child-title" aria-describedby="add-child-desc">
       <div class="field">
-        <label for="childName">Child name or nickname</label>
+        <label for="childName">Name</label>
         <input id="childName" name="childName" type="text" autocomplete="off" required />
       </div>
 
@@ -28,6 +28,8 @@ export function AddChild(){
         <label for="year">Year group</label>
         <input id="year" name="year" type="number" min="1" max="13" inputmode="numeric" placeholder="e.g., 4 or 7" required />
       </div>
+
+      <small class="help">All child data is stored locally on this device.</small>
 
       <div class="actions-row">
         <button type="submit" class="button" data-role="primary-cta">Save and continue</button>
@@ -61,7 +63,7 @@ export function AddChild(){
     }
   });
 
-  // School autocomplete (CSV index only)
+  // School autocomplete (CSV index only, unique names)
   const schoolInput = section.querySelector('#school');
   const dropdown = document.createElement('div');
   dropdown.className = 'autocomplete';
@@ -74,20 +76,28 @@ export function AddChild(){
   const ensureSchoolIndex = async () => {
     if (window.__oakwoodSchoolIndex === undefined) {
       const csv = await loadCsvSchools('data/gias_schools.csv');
-      window.__oakwoodSchoolIndex = csv.length ? csv : [];
+      window.__oakwoodSchoolIndex = Array.isArray(csv) ? csv : [];
     }
   };
 
   const getMatches = query => {
     const q = (query || '').trim().toLowerCase();
     const list = window.__oakwoodSchoolIndex;
-    if (list && list.length) {
-      const matches = q
-        ? list.filter(s => (`${s.name} ${s.postcode}`).toLowerCase().includes(q))
-        : list;
-      return matches.slice(0, 8).map(s => s.name);
+    if (!Array.isArray(list) || list.length === 0) return [];
+    const seen = new Set();
+    const out = [];
+    for (const item of list) {
+      const name = (item.name || '').trim();
+      if (!name) continue;
+      const hay = `${name} ${(item.postcode || '')}`.toLowerCase();
+      if (q && !hay.includes(q)) continue;
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(name);
+      if (out.length >= 8) break;
     }
-    return [];
+    return out;
   };
 
   const renderSuggestions = query => {
@@ -116,6 +126,15 @@ export function AddChild(){
     foot.textContent = 'From GIAS (DfE)';
     dropdown.appendChild(foot);
     dropdown.hidden = false;
+  };
+
+  const setActive = idx => {
+    const items = dropdown.querySelectorAll('.autocomplete-item');
+    items.forEach(el => el.setAttribute('aria-selected', 'false'));
+    if (items[idx]) {
+      items[idx].setAttribute('aria-selected', 'true');
+      activeIndex = idx;
+    }
   };
 
   const scheduleRender = () => {
@@ -156,21 +175,12 @@ export function AddChild(){
     setTimeout(() => { dropdown.hidden = true; }, 100);
   });
 
-  const setActive = idx => {
-    const items = dropdown.querySelectorAll('.autocomplete-item');
-    items.forEach(el => el.setAttribute('aria-selected', 'false'));
-    if (items[idx]) {
-      items[idx].setAttribute('aria-selected', 'true');
-      activeIndex = idx;
-    }
-  };
-
-  // Minimal client-side guard: validate only shape; do NOT persist (v2.3: UI never mutates state directly).
   const form = section.querySelector('form');
   form.addEventListener('submit', e => {
     e.preventDefault();
     const name = (form.childName.value || '').trim();
     const dob = (form.dob.value || '').trim();
+    const school = (form.school.value || '').trim();
     const year = Number(form.year.value || 0);
 
     const errors = [];
@@ -179,17 +189,14 @@ export function AddChild(){
     if (!Number.isFinite(year) || year < 1 || year > 13) errors.push('Enter a valid Year (1–13).');
 
     if (errors.length) {
-      alert(errors.join('\\n'));
+      alert(errors.join('\n'));
       return;
     }
-    const school = (form.school.value || '').trim();
-    const childId = createChild({ name, dob, year, school });
-    setActiveChild(childId);
+
+    addChild({ name, dob, school, year });
     location.hash = '#/child-overview';
   });
 
   return section;
 }
-
-
 

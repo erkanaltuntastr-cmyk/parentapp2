@@ -12,7 +12,8 @@ const mustExist = [
   'src/state/storage.js',
   'src/state/appState.js',
   'src/usecases/children.js',
-  'src/usecases/subjects.js'
+  'src/usecases/subjects.js',
+  'src/usecases/dataPortability.js'
 ];
 
 const bannedWords = [
@@ -28,7 +29,7 @@ const requiredCopy = {
   ]
 };
 
-const requiredRoutes = ['#/welcome', '#/add-child', '#/signin'];
+const requiredRoutes = ['#/welcome', '#/add-child', '#/signin', '#/settings'];
 const accessibilityHints = [
   { file: 'index.html', hint: 'id="app"' },
   { file: 'src/router.js', hint: 'app.focus()' }
@@ -78,6 +79,7 @@ for (const { file, hint } of accessibilityHints) {
 // 5) TODO/DEBUG kalıntıları
 const scanDebug = ['index.html', 'src/router.js', 'src/views/Welcome.js'];
 const subjectsView = 'src/views/Subjects.js';
+const settingsView = 'src/views/Settings.js';
 for (const rel of scanDebug) {
   const p = path.join(root, rel);
   if (fs.existsSync(p)) {
@@ -95,6 +97,17 @@ for (const rel of scanDebug) {
     const txt = fs.readFileSync(p, 'utf8');
     if (txt.includes('localStorage') || txt.includes('window.__oakwoodActiveChild')) {
       errors.push('Subjects.js must not reference localStorage or window.__oakwoodActiveChild.');
+    }
+  }
+}
+
+// 7) Settings view should not touch storage directly
+{
+  const p = path.join(root, settingsView);
+  if (fs.existsSync(p)) {
+    const txt = fs.readFileSync(p, 'utf8');
+    if (txt.includes('localStorage')) {
+      errors.push('Settings.js must not reference localStorage directly.');
     }
   }
 }

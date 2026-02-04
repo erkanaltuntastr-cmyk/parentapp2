@@ -1,5 +1,6 @@
 import { getActiveChild } from '../usecases/children.js';
 import { listSubjects, addSubject, removeSubject } from '../usecases/subjects.js';
+import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/curriculum.js';
 
 export function Subjects(){
   const section = document.createElement('section');
@@ -28,12 +29,16 @@ export function Subjects(){
 
   const body = section.querySelector('.subjects-body');
   const childId = child.id;
+  const year = child.year;
+  let availableSubjects = [];
+  let selectedSubject = '';
+  let topics = [];
 
   const render = () => {
     body.innerHTML = '';
-    const subjects = listSubjects(childId);
 
-    if (!subjects.length) {
+    const added = listSubjects(childId);
+    if (!added.length) {
       const empty = document.createElement('p');
       empty.className = 'subtitle';
       empty.textContent = 'No subjects yet.';
@@ -41,7 +46,7 @@ export function Subjects(){
     } else {
       const list = document.createElement('div');
       list.className = 'subject-list';
-      subjects.forEach(item => {
+      added.forEach(item => {
         const row = document.createElement('div');
         row.className = 'subject-row';
         const label = document.createElement('span');
@@ -62,44 +67,82 @@ export function Subjects(){
       body.appendChild(list);
     }
 
-    const addWrap = document.createElement('div');
-    addWrap.className = 'add-subject';
+    const selectWrap = document.createElement('div');
+    selectWrap.className = 'field';
+    const label = document.createElement('label');
+    label.textContent = 'Choose a subject';
+    label.setAttribute('for', 'subjectSelect');
+    const select = document.createElement('select');
+    select.id = 'subjectSelect';
+    select.innerHTML = `<option value="">Select a subject</option>` + availableSubjects.map(s => {
+      const selected = s === selectedSubject ? ' selected' : '';
+      return `<option value="${s}"${selected}>${s}</option>`;
+    }).join('');
+    selectWrap.appendChild(label);
+    selectWrap.appendChild(select);
+    body.appendChild(selectWrap);
+
     const addButton = document.createElement('button');
     addButton.type = 'button';
     addButton.className = 'button';
-    addButton.textContent = 'Add a subject';
-    addWrap.appendChild(addButton);
-    body.appendChild(addWrap);
-
+    addButton.textContent = 'Add Subject';
+    addButton.disabled = !selectedSubject || listSubjects(childId).includes(selectedSubject);
     addButton.addEventListener('click', () => {
-      addWrap.innerHTML = '';
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = 'e.g., Mathematics';
-      input.className = 'subject-input';
-      const add = document.createElement('button');
-      add.type = 'button';
-      add.className = 'button';
-      add.textContent = 'Add';
-      const cancel = document.createElement('a');
-      cancel.href = '#';
-      cancel.className = 'button-secondary';
-      cancel.textContent = 'Cancel';
-      cancel.addEventListener('click', e => {
-        e.preventDefault();
-        render();
+      if (!selectedSubject) return;
+      addSubject(childId, selectedSubject);
+      render();
+    });
+    body.appendChild(addButton);
+
+    const topicWrap = document.createElement('div');
+    topicWrap.style.marginTop = 'var(--space-3)';
+    if (selectedSubject && topics.length) {
+      const heading = document.createElement('p');
+      heading.className = 'subtitle';
+      heading.textContent = 'Topics and estimated weeks';
+      topicWrap.appendChild(heading);
+      topics.forEach(t => {
+        const row = document.createElement('div');
+        row.className = 'topic-row';
+        const title = document.createElement('div');
+        title.textContent = t.mainTopic || t.subject;
+        const sub = document.createElement('div');
+        sub.className = 'help';
+        sub.textContent = t.subtopic || '';
+        const week = document.createElement('div');
+        week.className = 'help';
+        week.textContent = t.estimatedWeek ? `Estimated Week: ${t.estimatedWeek}` : '';
+        row.appendChild(title);
+        if (sub.textContent) row.appendChild(sub);
+        if (week.textContent) row.appendChild(week);
+        topicWrap.appendChild(row);
       });
-      add.addEventListener('click', () => {
-        addSubject(childId, input.value);
-        render();
-      });
-      addWrap.appendChild(input);
-      addWrap.appendChild(add);
-      addWrap.appendChild(cancel);
-      input.focus();
+    } else if (selectedSubject) {
+      const none = document.createElement('p');
+      none.className = 'help';
+      none.textContent = 'No topics available for this subject.';
+      topicWrap.appendChild(none);
+    }
+    body.appendChild(topicWrap);
+
+    select.addEventListener('change', async () => {
+      selectedSubject = select.value;
+      topics = selectedSubject ? await getTopics(year, selectedSubject) : [];
+      render();
     });
   };
 
-  render();
+  const init = async () => {
+    body.innerHTML = '<p class="subtitle">Loading subjects…</p>';
+    await loadCurriculum();
+    availableSubjects = await getAvailableSubjects(year);
+    if (!availableSubjects.length) {
+      body.innerHTML = '<p class="subtitle">No curriculum subjects found for this year.</p>';
+      return;
+    }
+    render();
+  };
+
+  init();
   return section;
 }

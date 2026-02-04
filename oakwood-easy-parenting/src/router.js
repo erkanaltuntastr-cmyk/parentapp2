@@ -2,8 +2,12 @@ import { Welcome } from './views/Welcome.js';
 import { AddChild } from './views/AddChild.js';
 import { ChildOverview } from './views/ChildOverview.js';
 import { Subjects } from './views/Subjects.js';
-import { getActiveChild } from './usecases/children.js';
 import { SignIn } from './views/SignIn.js';
+import { Register } from './views/Register.js';
+import { Settings } from './views/Settings.js';
+import { getActiveChild } from './usecases/children.js';
+import { getState } from './state/appState.js';
+import { startInactivity, stopInactivity } from './usecases/inactivity.js';
 
 // ROUTES
 const routes = {
@@ -14,6 +18,8 @@ const routes = {
   '#/child-overview': ChildOverview,
   '#/subjects': Subjects,
   '#/signin': SignIn,
+  '#/register': Register,
+  '#/settings': Settings,
   '#/privacy': () => placeholder('Privacy Policy (placeholder)'),
   '#/terms': () => placeholder('Terms of Service (placeholder)'),
   '#/cookies': () => placeholder('Cookie Settings (placeholder)')
@@ -28,9 +34,19 @@ function placeholder(title){
 }
 
 // GUARD PIPELINE (stubs)
-// Order: Auth → Child selection → PIN → Inactivity (5m)
+// Order: Auth -> Child selection -> PIN -> Inactivity (5m)
 // Filled later per route; they currently pass-through by design.
-async function guardAuth(_route){ return null; }
+async function guardAuth(route){
+  const allow = ['#/signin', '#/register'];
+  if (allow.includes(route)) return null;
+  const state = getState();
+  if (!state.activeUserId) {
+    stopInactivity();
+    return { redirect: '#/signin' };
+  }
+  startInactivity();
+  return null;
+}
 async function guardChildSelected(route){
   const needsChild = ['#/child-overview', '#/subjects'];
   if (needsChild.includes(route) && !getActiveChild()) {
