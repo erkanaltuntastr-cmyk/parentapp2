@@ -1,0 +1,13 @@
+﻿{
+  "name": "oakwood-easy-parenting",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preflight": "node scripts/preflight.mjs",
+    "approve": "node scripts/approval.mjs",
+    "gate": "node scripts/stop.mjs",
+    "dev:python": "python3 -m http.server 5173",
+    "dev:node": "node scripts/serve.mjs"
+  }
+}
