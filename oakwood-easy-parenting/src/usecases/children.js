@@ -67,6 +67,33 @@ export function deleteChild(childId){
   saveState(next);
 }
 
+export function updateChildGroupName(childId, groupName){
+  const state = getState();
+  const nextChildren = state.children.map(c => {
+    if (c.id !== childId) return c;
+    return { ...c, groupName: String(groupName || '').trim() };
+  });
+  saveState({ ...state, children: nextChildren });
+}
+
+export function getCurriculumSelection(childId, subject){
+  const state = getState();
+  const child = state.children.find(c => c.id === childId);
+  if (!child) return null;
+  const selections = child.curriculumSelections || {};
+  return selections[subject] || null;
+}
+
+export function setCurriculumSelection(childId, subject, selection){
+  const state = getState();
+  const nextChildren = state.children.map(c => {
+    if (c.id !== childId) return c;
+    const curriculumSelections = { ...(c.curriculumSelections || {}), [subject]: selection };
+    return { ...c, curriculumSelections };
+  });
+  saveState({ ...state, children: nextChildren });
+}
+
 export function getActiveChild(){
   const state = getState();
   const id = state.activeChildId;

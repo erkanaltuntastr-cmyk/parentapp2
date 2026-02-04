@@ -1,23 +1,7 @@
-import { getActiveChild } from '../usecases/children.js';
+import { getActiveChild, getCurriculumSelection, setCurriculumSelection } from '../usecases/children.js';
 import { addSubject, listSubjects } from '../usecases/subjects.js';
 import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/curriculum.js';
-import { addAssignment } from '../usecases/assignments.js';
 import { getState } from '../state/appState.js';
-
-function getCurrentSchoolWeek(){
-  const now = new Date();
-  const startYear = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
-  const start = new Date(startYear, 8, 1);
-  start.setHours(0, 0, 0, 0);
-  const diff = now.getTime() - start.getTime();
-  const week = Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
-  return Math.max(1, week);
-}
-
-function parseWeekStart(estimatedWeek){
-  const m = String(estimatedWeek || '').match(/\d+/);
-  return m ? Number(m[0]) : null;
-}
 
 const SAMPLE_SUBJECTS = [
   'English',
@@ -28,6 +12,17 @@ const SAMPLE_SUBJECTS = [
   'Art and Design',
   'Physical Education'
 ];
+
+function normaliseSelection(raw){
+  return {
+    main: raw?.main ? { ...raw.main } : {},
+    sub: raw?.sub ? { ...raw.sub } : {}
+  };
+}
+
+function unique(list){
+  return Array.from(new Set(list.filter(Boolean)));
+}
 
 export function SubjectCurriculum(){
   const section = document.createElement('section');
@@ -58,13 +53,13 @@ export function SubjectCurriculum(){
     titleEl.textContent = name ? `${name} - curriculum` : 'Your child - curriculum';
   };
   setTitle(child);
+
   let year = child.year;
   let available = [];
   let selected = '';
   let topics = [];
-  let showSubtopics = false;
-  let modalOpen = false;
   let isSample = false;
+  const expanded = new Set();
 
   const render = () => {
     body.innerHTML = '';
@@ -84,6 +79,7 @@ export function SubjectCurriculum(){
       boxWrap.appendChild(btn);
     });
     body.appendChild(boxWrap);
+
     if (isSample) {
       const banner = document.createElement('div');
       banner.className = 'empty-state';
@@ -94,9 +90,7 @@ export function SubjectCurriculum(){
       body.appendChild(banner);
     }
 
-    if (!selected) {
-      return;
-    }
+    if (!selected) return;
 
     const added = listSubjects(child.id);
     const addBtn = document.createElement('button');
@@ -110,119 +104,104 @@ export function SubjectCurriculum(){
     });
     body.appendChild(addBtn);
 
-    const toggle = document.createElement('label');
-    toggle.className = 'toggle';
-    toggle.innerHTML = `
-      <input type="checkbox" ${showSubtopics ? 'checked' : ''} />
-      <span>Show Subtopics</span>
+    const detailHead = document.createElement('div');
+    detailHead.className = 'subject-detail-head';
+    detailHead.innerHTML = `
+      <h2 class="h2">${selected}</h2>
+      <button type="button" class="button-secondary" data-role="select-all">Select Topics for Exam</button>
     `;
-    toggle.querySelector('input').addEventListener('change', e => {
-      showSubtopics = e.target.checked;
-      section.querySelectorAll('.subtopics').forEach(el => {
-        el.classList.toggle('is-open', showSubtopics);
-        el.classList.toggle('is-closed', !showSubtopics);
-      });
-    });
-    body.appendChild(toggle);
+    body.appendChild(detailHead);
 
-    const week = getCurrentSchoolWeek();
-    const list = document.createElement('div');
-    list.className = 'topic-list';
+    const selection = normaliseSelection(getCurriculumSelection(child.id, selected));
+    const groups = {};
     topics.forEach(t => {
-      const startWeek = parseWeekStart(t.estimatedWeek);
-      const isPast = startWeek !== null && startWeek < week;
+      const main = (t.mainTopic || t.subject || '').trim();
+      if (!main) return;
+      const sub = (t.subtopic || '').trim();
+      if (!groups[main]) groups[main] = [];
+      groups[main].push({ sub, estimatedWeek: t.estimatedWeek || '' });
+    });
+
+    const list = document.createElement('div');
+    list.className = 'curriculum-list';
+
+    const updateSelection = next => {
+      setCurriculumSelection(child.id, selected, next);
+    };
+
+    Object.entries(groups).forEach(([main, entries]) => {
+      const subtopics = unique(entries.map(e => e.sub || 'General'));
+      const mainSelected = subtopics.length
+        ? subtopics.every(s => selection.sub?.[main]?.[s])
+        : Boolean(selection.main?.[main]);
+
       const row = document.createElement('div');
-      row.className = `topic-row ${isPast ? 'past-topic' : 'future-topic'}`;
-      const check = document.createElement('input');
-      check.type = 'checkbox';
-      check.checked = true;
-      const title = document.createElement('div');
-      title.textContent = t.mainTopic || t.subject;
-      row.appendChild(check);
-      row.appendChild(title);
+      row.className = 'topic-main';
+      row.innerHTML = `
+        <div class="topic-main-row">
+          <label class="check">
+            <input type="checkbox" ${mainSelected ? 'checked' : ''} />
+            <span>${main}</span>
+          </label>
+          <button type="button" class="expand-btn" aria-label="Toggle subtopics">+</button>
+        </div>
+      `;
 
-      const assignBtn = document.createElement('button');
-      assignBtn.type = 'button';
-      assignBtn.className = 'button-secondary assign-btn';
-      assignBtn.textContent = 'Assign Task';
-      assignBtn.addEventListener('click', () => {
-        if (modalOpen) return;
-        modalOpen = true;
-        const overlay = document.createElement('div');
-        overlay.className = 'modal-overlay';
-        overlay.innerHTML = `
-          <div class="modal">
-            <h3 class="h3">Assign Task</h3>
-            <p class="help">Assign this topic as homework or an exam.</p>
-            <form class="form">
-              <div class="field">
-                <label for="taskType">Type</label>
-                <select id="taskType" name="taskType">
-                  <option value="homework">Homework</option>
-                  <option value="exam">Exam</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="taskDeadline">Deadline</label>
-                <input id="taskDeadline" name="taskDeadline" type="date" required />
-              </div>
-              <div class="actions-row">
-                <button type="submit" class="button">Assign</button>
-                <button type="button" class="button-secondary" data-role="cancel">Cancel</button>
-              </div>
-            </form>
-          </div>
-        `;
-        const close = () => {
-          overlay.remove();
-          modalOpen = false;
-        };
-        overlay.querySelector('[data-role="cancel"]').addEventListener('click', close);
-        overlay.addEventListener('click', e => {
-          if (e.target === overlay) close();
-        });
-        overlay.querySelector('form').addEventListener('submit', e => {
-          e.preventDefault();
-          const type = overlay.querySelector('#taskType').value;
-          const deadline = overlay.querySelector('#taskDeadline').value;
-          addAssignment({
-            childId: child.id,
-            subject: selected,
-            topic: t.mainTopic || t.subject,
-            subtopic: t.subtopic || '',
-            estimatedWeek: t.estimatedWeek || '',
-            type,
-            deadline
-          });
-          close();
-          alert('Task assigned.');
-        });
-        section.appendChild(overlay);
+      const mainCheck = row.querySelector('input[type="checkbox"]');
+      mainCheck.addEventListener('change', e => {
+        const checked = e.target.checked;
+        const next = normaliseSelection(selection);
+        next.main[main] = checked;
+        next.sub[main] = {};
+        subtopics.forEach(s => { next.sub[main][s] = checked; });
+        updateSelection(next);
+        render();
       });
-      row.appendChild(assignBtn);
 
-      const subText = (t.subtopic || '').trim();
-      const weekText = t.estimatedWeek ? `Estimated Week: ${t.estimatedWeek}` : '';
-      if (subText || weekText) {
-        const subWrap = document.createElement('div');
-        subWrap.className = `subtopics ${showSubtopics ? 'is-open' : 'is-closed'}`;
-        if (subText) {
-          const sub = document.createElement('div');
-          sub.className = 'help';
-          sub.textContent = subText;
-          subWrap.appendChild(sub);
-        }
-        if (weekText) {
-          const weekLabel = document.createElement('div');
-          weekLabel.className = 'help';
-          weekLabel.textContent = weekText;
-          subWrap.appendChild(weekLabel);
-        }
-        row.appendChild(subWrap);
-      }
+      const subList = document.createElement('div');
+      subList.className = `subtopic-list${expanded.has(main) ? ' is-open' : ''}`;
+      subtopics.forEach(sub => {
+        const checked = Boolean(selection.sub?.[main]?.[sub]);
+        const subRow = document.createElement('label');
+        subRow.className = 'subtopic-item';
+        subRow.innerHTML = `
+          <input type="checkbox" ${checked ? 'checked' : ''} />
+          <span>${sub}</span>
+        `;
+        subRow.querySelector('input').addEventListener('change', e => {
+          const next = normaliseSelection(selection);
+          if (!next.sub[main]) next.sub[main] = {};
+          next.sub[main][sub] = e.target.checked;
+          const all = subtopics.every(s => next.sub[main][s]);
+          next.main[main] = all;
+          updateSelection(next);
+        });
+        subList.appendChild(subRow);
+      });
+      row.appendChild(subList);
+
+      row.querySelector('.expand-btn').addEventListener('click', () => {
+        if (expanded.has(main)) expanded.delete(main);
+        else expanded.add(main);
+        render();
+      });
+
       list.appendChild(row);
     });
+
     body.appendChild(list);
+
+    detailHead.querySelector('[data-role="select-all"]').addEventListener('click', () => {
+      const next = { main: {}, sub: {} };
+      Object.keys(groups).forEach(main => {
+        next.main[main] = true;
+        next.sub[main] = {};
+        const subtopics = unique(groups[main].map(e => e.sub || 'General'));
+        subtopics.forEach(s => { next.sub[main][s] = true; });
+      });
+      updateSelection(next);
+      render();
+    });
   };
 
   const init = async () => {
@@ -260,6 +239,7 @@ export function SubjectCurriculum(){
       year = child.year;
       selected = '';
       topics = [];
+      expanded.clear();
       await init();
     }
   }, 300);

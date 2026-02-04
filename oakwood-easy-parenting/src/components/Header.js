@@ -51,27 +51,29 @@ export function Header(){
   const btn = wrap.querySelector('.avatar-btn');
   const menu = wrap.querySelector('.header-menu');
   const headerRight = wrap.querySelector('.header-right');
+  const closeMenu = () => {
+    menu.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+  };
   btn.addEventListener('click', () => {
     const open = !menu.hidden;
     menu.hidden = open;
     btn.setAttribute('aria-expanded', String(!open));
   });
   headerRight.addEventListener('mouseleave', () => {
-    menu.hidden = true;
-    btn.setAttribute('aria-expanded', 'false');
+    closeMenu();
   });
+  menu.addEventListener('mouseleave', closeMenu);
 
   wrap.querySelector('[data-role="logout"]').addEventListener('click', () => {
     logout();
-    menu.hidden = true;
-    btn.setAttribute('aria-expanded', 'false');
+    closeMenu();
     location.hash = '#/signin';
   });
 
   document.addEventListener('click', e => {
     if (!wrap.contains(e.target)) {
-      menu.hidden = true;
-      btn.setAttribute('aria-expanded', 'false');
+      closeMenu();
     }
   });
 

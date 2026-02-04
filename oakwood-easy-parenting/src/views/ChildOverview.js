@@ -1,7 +1,19 @@
-import { getActiveChild, deleteChild } from '../usecases/children.js';
+import { getActiveChild, deleteChild, updateChildGroupName } from '../usecases/children.js';
 import { listSubjects } from '../usecases/subjects.js';
-import { getTrafficLight, getNeedsFocus, calculateTrend } from '../usecases/analytics.js';
+import { getState } from '../state/appState.js';
+import { getIconById } from '../utils/icons.js';
 import { getTeachersForChild } from '../usecases/teachers.js';
+
+function scoreColor(score){
+  if (score === null || score === undefined) return '#E2E8F0';
+  if (score >= 100) return '#22C55E';
+  if (score >= 90) return '#86EFAC';
+  if (score >= 80) return '#F97316';
+  if (score >= 70) return '#FDBA74';
+  if (score >= 50) return '#FACC15';
+  if (score >= 30) return '#FEF08A';
+  return '#7F1D1D';
+}
 
 export function ChildOverview(){
   const section = document.createElement('section');
@@ -16,20 +28,33 @@ export function ChildOverview(){
   const name = (child.name || '').trim();
   const year = Number(child.year || 0);
   const school = (child.school || '').trim();
+  const groupName = (child.groupName || '').trim();
+  const icon = getIconById(child.iconId);
 
-  const title = name ? `${name} - overview` : 'Your child - overview';
-  let meta = '';
-  if (Number.isFinite(year) && year > 0) {
-    meta = `Year ${year}`;
-  }
-  if (school) {
-    meta = meta ? `${meta} - ${school}` : school;
-  }
+  const title = name || 'Your child';
+  const metaLine = `${school || 'School not set'} | Year ${year || '-'} | `;
   const teachers = getTeachersForChild(child.id);
 
   section.innerHTML = `
-    <h1 class="h1">${title}</h1>
-    ${meta ? `<p class="subtitle">${meta}</p>` : ''}
+    <div class="child-identity">
+      <div class="child-identity-left">
+        <div class="child-identity-icon"><img src="${icon.src}" alt="${icon.id}" /></div>
+        <div class="child-identity-text">
+          <div class="child-identity-name">${title}</div>
+          <div class="child-identity-meta">
+            <span>${metaLine}</span>
+            <span class="group-edit">
+              <span class="group-name ${groupName ? '' : 'is-empty'}">${groupName || 'Group Name'}</span>
+              <button type="button" class="group-edit-btn" aria-label="Edit group name">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 16.5V20h3.5L18 9.5l-3.5-3.5L4 16.5Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
     ${teachers.length ? `
       <div class="teacher-strip">
         ${teachers.map(t => `<span class="teacher-chip">${t.name || 'Teacher'}</span>`).join('')}
@@ -51,88 +76,84 @@ export function ChildOverview(){
     </div>
   `;
 
+  const groupWrap = section.querySelector('.group-edit');
+  const groupNameEl = groupWrap.querySelector('.group-name');
+  const editBtn = groupWrap.querySelector('.group-edit-btn');
+  const setGroupText = value => {
+    const next = String(value || '').trim();
+    groupNameEl.textContent = next || 'Group Name';
+    groupNameEl.classList.toggle('is-empty', !next);
+  };
+  const startEdit = () => {
+    groupWrap.innerHTML = `
+      <input class="group-input" type="text" value="${groupName}" />
+      <button type="button" class="group-save-btn" aria-label="Save group name">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12.5l4 4L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    `;
+    const input = groupWrap.querySelector('.group-input');
+    const save = () => {
+      updateChildGroupName(child.id, input.value);
+      groupWrap.innerHTML = `
+        <span class="group-name ${input.value.trim() ? '' : 'is-empty'}">${input.value.trim() || 'Group Name'}</span>
+        <button type="button" class="group-edit-btn" aria-label="Edit group name">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 16.5V20h3.5L18 9.5l-3.5-3.5L4 16.5Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </button>
+      `;
+      groupWrap.querySelector('.group-edit-btn').addEventListener('click', startEdit);
+    };
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        save();
+      }
+    });
+    input.addEventListener('blur', save);
+    groupWrap.querySelector('.group-save-btn').addEventListener('click', save);
+    input.focus();
+  };
+  editBtn.addEventListener('click', startEdit);
+
   const body = section.querySelector('.overview-body');
   const subjects = listSubjects(child.id);
-  const assessments = child.assessments || {};
-
-  const summaries = subjects.map(subject => {
-    const scores = Array.isArray(assessments[subject]) ? assessments[subject] : [];
-    const latest = scores.length ? scores[scores.length - 1] : null;
-    return {
-      name: subject,
-      latest,
-      traffic: getTrafficLight(latest),
-      trend: calculateTrend(scores)
-    };
-  });
-
-  const needsFocus = getNeedsFocus(summaries);
-
-  const needs = document.createElement('div');
-  needs.className = 'needs-focus';
-  const needsTitle = document.createElement('p');
-  needsTitle.className = 'subtitle';
-  needsTitle.textContent = 'Needs Focus';
-  needs.appendChild(needsTitle);
-  if (needsFocus.length) {
-    const list = document.createElement('div');
-    list.className = 'needs-list';
-    needsFocus.forEach(name => {
-      const item = document.createElement('div');
-      item.className = 'needs-item';
-      const dot = document.createElement('span');
-      dot.className = 'traffic traffic-red';
-      const label = document.createElement('span');
-      label.textContent = name;
-      item.appendChild(dot);
-      item.appendChild(label);
-      list.appendChild(item);
-    });
-    needs.appendChild(list);
-  } else {
-    const none = document.createElement('p');
-    none.className = 'help';
-    none.textContent = 'No subjects need focus yet.';
-    needs.appendChild(none);
-  }
-  body.appendChild(needs);
+  const assignments = getState().assignments || [];
 
   const cards = document.createElement('div');
-  cards.className = 'subject-cards';
-  if (!summaries.length) {
-    const empty = document.createElement('p');
-    empty.className = 'subtitle';
-    empty.textContent = 'No subjects yet.';
-    cards.appendChild(empty);
+  cards.className = 'overview-grid';
+  if (!subjects.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = '<p class="subtitle">No subjects yet.</p>';
+    body.appendChild(empty);
   } else {
-    summaries.forEach(s => {
-      const row = document.createElement('div');
-      row.className = 'subject-card';
-      const head = document.createElement('div');
-      head.className = 'subject-head';
-      const nameEl = document.createElement('span');
-      nameEl.textContent = s.name;
-      const traffic = document.createElement('span');
-      traffic.className = `traffic ${s.traffic ? `traffic-${s.traffic}` : 'traffic-none'}`;
-      head.appendChild(nameEl);
-      head.appendChild(traffic);
-      row.appendChild(head);
-
-      const metaEl = document.createElement('div');
-      metaEl.className = 'help';
-      if (s.latest === null || s.latest === undefined) {
-        metaEl.textContent = 'No assessment yet.';
-      } else {
-        const trendLabel = s.trend === 'improving' ? 'Improving'
-          : s.trend === 'declining' ? 'Declining'
-          : 'Stable';
-        metaEl.textContent = `Latest score: ${s.latest} - Trend: ${trendLabel}`;
-      }
-      row.appendChild(metaEl);
-      cards.appendChild(row);
+    subjects.forEach((subject, idx) => {
+      const scores = assignments
+        .filter(a => a.childId === child.id && a.subject === subject && typeof a.score === 'number')
+        .map(a => a.score);
+      const best = scores.length ? Math.max(...scores) : null;
+      const color = scoreColor(best);
+      const card = document.createElement('div');
+      card.className = 'overview-card';
+      card.style.borderLeft = `4px solid ${color}`;
+      card.innerHTML = `
+        <div class="overview-card-head">
+          <span>${subject}</span>
+          <span class="score-badge" style="background:${color}">${best === null ? 'No data' : `${best}%`}</span>
+        </div>
+        <div class="help">Best score</div>
+      `;
+      cards.appendChild(card);
     });
+    if (subjects.length % 2 === 1) {
+      const last = cards.lastElementChild;
+      if (last) last.classList.add('is-single');
+    }
+    body.appendChild(cards);
   }
-  body.appendChild(cards);
 
   section.querySelector('[data-role="edit-child"]').addEventListener('click', () => {
     alert('Edit child is coming next.');
