@@ -1,7 +1,7 @@
 {
-  "product": { "approved": true, "by": "PRD", "date": "04/02/2026" },
-  "design": { "approved": true, "by": "DSN", "date": "04/02/2026" },
-  "security": { "approved": true, "by": "SEC", "date": "04/02/2026" },
-  "a11y": { "approved": true, "by": "A11Y", "date": "04/02/2026" },
-  "legal": { "approved": true, "by": "LGL", "date": "04/02/2026" }
+  "product": { "approved": true, "by": "EA", "date": "04/02/2026" },
+  "design": { "approved": true, "by": "EA", "date": "04/02/2026" },
+  "security": { "approved": true, "by": "EA", "date": "04/02/2026" },
+  "a11y": { "approved": true, "by": "EA", "date": "04/02/2026" },
+  "legal": { "approved": true, "by": "EA", "date": "04/02/2026" }
 }
