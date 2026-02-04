@@ -1,8 +1,15 @@
+import { getActiveChild } from '../usecases/children.js';
+
 export function ChildOverview(){
   const section = document.createElement('section');
   section.className = 'card';
 
-  const child = window.__oakwoodActiveChild || {};
+  const child = getActiveChild();
+  if (!child) {
+    location.hash = '#/add-child';
+    return section;
+  }
+
   const name = (child.name || '').trim();
   const year = Number(child.year || 0);
   const school = (child.school || '').trim();

@@ -2,6 +2,8 @@ import { Welcome } from './views/Welcome.js';
 import { AddChild } from './views/AddChild.js';
 import { ChildOverview } from './views/ChildOverview.js';
 import { Subjects } from './views/Subjects.js';
+import { getActiveChild } from './usecases/children.js';
+import { SignIn } from './views/SignIn.js';
 
 // ROUTES
 const routes = {
@@ -11,7 +13,7 @@ const routes = {
   '#/add-child': AddChild,
   '#/child-overview': ChildOverview,
   '#/subjects': Subjects,
-  '#/signin': () => placeholder('Sign in'),
+  '#/signin': SignIn,
   '#/privacy': () => placeholder('Privacy Policy (placeholder)'),
   '#/terms': () => placeholder('Terms of Service (placeholder)'),
   '#/cookies': () => placeholder('Cookie Settings (placeholder)')
@@ -31,7 +33,7 @@ function placeholder(title){
 async function guardAuth(_route){ return null; }
 async function guardChildSelected(route){
   const needsChild = ['#/child-overview', '#/subjects'];
-  if (needsChild.includes(route) && !window.__oakwoodActiveChild) {
+  if (needsChild.includes(route) && !getActiveChild()) {
     return { redirect: '#/add-child' };
   }
   return null;

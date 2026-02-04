@@ -1,4 +1,5 @@
 ﻿import { loadCsvSchools } from '../lib/loadCsv.js';
+import { createChild, setActiveChild } from '../usecases/children.js';
 
 export function AddChild(){
   const section = document.createElement('section');
@@ -178,14 +179,17 @@ export function AddChild(){
     if (!Number.isFinite(year) || year < 1 || year > 13) errors.push('Enter a valid Year (1–13).');
 
     if (errors.length) {
-      alert(errors.join('\n'));
+      alert(errors.join('\\n'));
       return;
     }
-    // Next step: in future we will call a use-case to persist; for now, set session data only.
-    window.__oakwoodActiveChild = { name, dob, year, school: (form.school.value || '').trim() };
+    const school = (form.school.value || '').trim();
+    const childId = createChild({ name, dob, year, school });
+    setActiveChild(childId);
     location.hash = '#/child-overview';
   });
 
   return section;
 }
+
+
 

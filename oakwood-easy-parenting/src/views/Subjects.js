@@ -1,12 +1,18 @@
+import { getActiveChild } from '../usecases/children.js';
+import { listSubjects, addSubject, removeSubject } from '../usecases/subjects.js';
+
 export function Subjects(){
   const section = document.createElement('section');
   section.className = 'card';
 
-  const child = window.__oakwoodActiveChild || {};
+  const child = getActiveChild();
+  if (!child) {
+    location.hash = '#/add-child';
+    return section;
+  }
+
   const name = (child.name || '').trim();
   const title = name ? `${name} — subjects` : 'Your child — subjects';
-
-  const subjects = [];
 
   section.innerHTML = `
     <h1 class="h1">${title}</h1>
@@ -21,9 +27,11 @@ export function Subjects(){
   `;
 
   const body = section.querySelector('.subjects-body');
+  const childId = child.id;
 
   const render = () => {
     body.innerHTML = '';
+    const subjects = listSubjects(childId);
 
     if (!subjects.length) {
       const empty = document.createElement('p');
@@ -33,18 +41,18 @@ export function Subjects(){
     } else {
       const list = document.createElement('div');
       list.className = 'subject-list';
-      subjects.forEach((name, idx) => {
+      subjects.forEach(item => {
         const row = document.createElement('div');
         row.className = 'subject-row';
         const label = document.createElement('span');
-        label.textContent = name;
+        label.textContent = item;
         const remove = document.createElement('a');
         remove.href = '#';
         remove.className = 'button-secondary';
         remove.textContent = 'Remove';
         remove.addEventListener('click', e => {
           e.preventDefault();
-          subjects.splice(idx, 1);
+          removeSubject(childId, item);
           render();
         });
         row.appendChild(label);
@@ -82,8 +90,7 @@ export function Subjects(){
         render();
       });
       add.addEventListener('click', () => {
-        const value = (input.value || '').trim();
-        if (value) subjects.push(value);
+        addSubject(childId, input.value);
         render();
       });
       addWrap.appendChild(input);

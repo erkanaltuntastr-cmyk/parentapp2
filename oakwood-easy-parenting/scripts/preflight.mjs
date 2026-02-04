@@ -8,7 +8,11 @@ const mustExist = [
   'src/styles/base.css',
   'src/main.js',
   'src/router.js',
-  'src/views/Welcome.js'
+  'src/views/Welcome.js',
+  'src/state/storage.js',
+  'src/state/appState.js',
+  'src/usecases/children.js',
+  'src/usecases/subjects.js'
 ];
 
 const bannedWords = [
@@ -73,12 +77,24 @@ for (const { file, hint } of accessibilityHints) {
 
 // 5) TODO/DEBUG kalıntıları
 const scanDebug = ['index.html', 'src/router.js', 'src/views/Welcome.js'];
+const subjectsView = 'src/views/Subjects.js';
 for (const rel of scanDebug) {
   const p = path.join(root, rel);
   if (fs.existsSync(p)) {
     const txt = fs.readFileSync(p, 'utf8');
     if (/\bTODO\b|console\.log\(/.test(txt)) {
       errors.push(`Debug/TODO leftovers in ${rel} — please clean.`);
+    }
+  }
+}
+
+// 6) Subjects view should not touch storage or temp globals
+{
+  const p = path.join(root, subjectsView);
+  if (fs.existsSync(p)) {
+    const txt = fs.readFileSync(p, 'utf8');
+    if (txt.includes('localStorage') || txt.includes('window.__oakwoodActiveChild')) {
+      errors.push('Subjects.js must not reference localStorage or window.__oakwoodActiveChild.');
     }
   }
 }
