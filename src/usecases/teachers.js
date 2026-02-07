@@ -5,13 +5,14 @@ export function listTeachers(){
   return Array.isArray(state.teachers) ? state.teachers : [];
 }
 
-export function addTeacher({ name, email, childIds }){
+export function addTeacher({ name, email, childIds, subject }){
   const state = getState();
   const teacher = {
     id: `t_${Date.now()}`,
     name: String(name || '').trim(),
     email: String(email || '').trim(),
-    childIds: Array.isArray(childIds) ? childIds : []
+    childIds: Array.isArray(childIds) ? childIds : [],
+    subject: String(subject || '').trim()
   };
   const next = { ...state, teachers: [...(state.teachers || []), teacher] };
   saveState(next);

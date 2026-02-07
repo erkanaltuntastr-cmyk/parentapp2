@@ -3,6 +3,8 @@ import { listSubjects, setSubjectActive } from '../usecases/subjects.js';
 import { getState } from '../state/appState.js';
 import { getIconById } from '../utils/icons.js';
 import { getTeachersForChild } from '../usecases/teachers.js';
+import { getActiveUser } from '../usecases/auth.js';
+import { listFamilyMembers } from '../usecases/familyMembers.js';
 import { getActiveUser, ADMIN_USERNAME } from '../usecases/auth.js';
 import { sendMessage } from '../usecases/messages.js';
 
@@ -36,6 +38,15 @@ export function ChildOverview(){
   const title = name || 'Your child';
   const metaLine = `${school || 'School not set'} | Year ${year || '-'} | `;
   const teachers = getTeachersForChild(child.id);
+  const activeUser = getActiveUser();
+  const parentNames = [];
+  const primaryParent = getState().parent?.name
+    ? `${getState().parent.name} ${getState().parent.surname || ''}`.trim()
+    : (activeUser?.username || 'Parent');
+  if (primaryParent) parentNames.push(primaryParent);
+  listFamilyMembers().forEach(m => {
+    if (m.name && !parentNames.includes(m.name)) parentNames.push(m.name);
+  });
 
   section.innerHTML = `
     <div class="child-identity">
@@ -57,11 +68,18 @@ export function ChildOverview(){
         </div>
       </div>
     </div>
-    ${teachers.length ? `
-      <div class="teacher-strip">
-        ${teachers.map(t => `<span class="teacher-chip">${t.name || 'Teacher'}</span>`).join('')}
+    <div class="people-strip">
+      <div class="people-title">Parents</div>
+      <div class="people-chips">
+        ${parentNames.length ? parentNames.map(p => `<span class="people-chip people-chip-orange">${p}</span>`).join('') : '<span class="help">No parents listed.</span>'}
       </div>
-    ` : ''}
+    </div>
+    <div class="people-strip">
+      <div class="people-title">Teachers</div>
+      <div class="people-chips">
+        ${teachers.length ? teachers.map(t => `<span class="people-chip people-chip-green">${t.name || 'Teacher'}</span>`).join('') : '<span class="help">No teachers linked yet.</span>'}
+      </div>
+    </div>
     <div class="overview-body"></div>
     <div class="actions" style="margin-top: var(--space-4);">
       <a class="button" href="#/subjects">View subjects</a>
