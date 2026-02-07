@@ -1,21 +1,21 @@
 # Oakwood LMS Motor (v2.9.9)
 
-Local‑First, vanilla JS SPA for Oakwood Learning Management System. Hash‑based routing, single AppState, and high‑fidelity mock data for full Parent → AI → Pupil → Report → Homework → Re‑take flow.
+Local-first, vanilla JS SPA for Oakwood Learning Management System. Hash-based routing, single AppState, and high-fidelity mock data for full Parent -> AI -> Pupil -> Report -> Homework -> Re-take flow.
 
 **Live Demo**
 https://erkanaltuntastr-cmyk.github.io/parentapp2/  
-Enable GitHub Pages with source `/oakwood-easy-parenting` on `main` to activate the link.
+Enable GitHub Pages with source `/(root)` on `main` to activate the link.
 
 ## Features
-- Parent & pupil dashboards with subject Active/Passive control.
-- Week‑based curriculum greyscaling using current school week.
-- 3‑mode Quiz Wizard (Automatic, Quick Settings, Expert) with presets.
+- Parent and pupil dashboards with subject Active/Passive control.
+- Week-based curriculum greyscaling using current school week.
+- 3-mode Quiz Wizard (Automatic, Quick Settings, Expert) with presets.
 - Mock Pedagogical Review with Apply/Proceed/Back actions.
-- Full quiz session: timer, progress, hints, explain‑after‑answer.
-- Positive‑first report with strengths, growth, critical needs.
+- Full quiz session: timer, progress, hints, explain-after-answer.
+- Positive-first report with strengths, growth, critical needs.
 - Homework generation and gated retake logic.
 - Manual Quiz creation (paste or upload).
-- Local‑first state, no backend required.
+- Local-first state, no backend required.
 
 ## Demo Credentials
 - Parent: `demo_parent` / `Oakwood*2026`
@@ -25,7 +25,6 @@ Enable GitHub Pages with source `/oakwood-easy-parenting` on `main` to activate 
 
 ## Run Locally
 ```bash
-cd oakwood-easy-parenting
 npm run dev:python
 ```
 Open `http://localhost:5173`
@@ -60,9 +59,9 @@ npm run gate
 - `data/mock-homework.json`
 
 ## GitHub Pages Deploy
-1. GitHub repo → Settings → Pages
+1. GitHub repo -> Settings -> Pages
 2. Source: `main` branch
-3. Folder: `/oakwood-easy-parenting`
+3. Folder: `/(root)`
 4. Save, then open the Live Demo URL above
 
 ## Suggested Topics
