@@ -74,6 +74,16 @@ export async function ensureDemoSeed(){
     activeUserId: parentId,
     activeChildId: child1Id,
     parent: { name: 'Jamie', surname: 'Oakwood', postcode: 'NW1 4AB' },
+    familyName: 'Blackwood',
+    teachers: [
+      {
+        id: `t_${now + 10}`,
+        name: 'Mr Zaman',
+        email: 'mr.zaman@oakwood.test',
+        childIds: [child1Id],
+        subject: 'Maths'
+      }
+    ],
     __meta: { ...(state.__meta || {}), demoSeeded: true }
   };
   saveState(next);

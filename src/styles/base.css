@@ -90,6 +90,9 @@ body{
   padding: 8px; min-width: 170px; box-shadow: var(--shadow-soft);
   display:flex; flex-direction:column; gap: 6px;
 }
+.header-menu[hidden]{
+  display:none;
+}
 .header-menu a, .header-menu button{
   text-align:left; background: transparent; border:none; padding: 8px 10px;
   border-radius: 8px; color: var(--ink-900); cursor:pointer; font-weight:600;
@@ -765,6 +768,52 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   border: 1px solid var(--border-200);
   border-radius: 12px;
   background: #F8FAFC;
+}
+.family-section{
+  margin-top: var(--space-4);
+  padding: 16px;
+  border: 1px solid var(--border-200);
+  border-radius: 14px;
+  background: #fff;
+  text-align:left;
+}
+.family-section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom: var(--space-2);
+}
+.family-list{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-2);
+}
+.family-card{
+  border: 1px solid var(--border-200);
+  border-radius: 12px;
+  padding: 12px;
+  background: #F8FAFC;
+}
+.family-card.is-clickable{
+  cursor:pointer;
+  background:#fff;
+}
+.family-child-head{
+  display:flex;
+  align-items:center;
+  gap: var(--space-2);
+  margin-bottom: 6px;
+}
+.family-add-child{
+  margin-top: var(--space-4);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px dashed var(--border-200);
+  background: #F8FAFC;
+  text-align:left;
 }
 .verification-row{
   display:flex;

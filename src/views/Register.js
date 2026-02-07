@@ -1,4 +1,5 @@
 import { registerUser, mockGoogleSignIn, getActiveUser, setLegalConsent } from '../usecases/auth.js';
+import { setFamilyName } from '../usecases/family.js';
 import { attachPasswordToggles } from '../utils/passwordToggle.js';
 import { toast } from '../utils/toast.js';
 
@@ -10,6 +11,10 @@ export function Register(){
     <p class="subtitle">Set up a local parent profile.</p>
 
     <form class="form">
+      <div class="field">
+        <label for="familyName">Family Name</label>
+        <input id="familyName" name="familyName" type="text" autocomplete="off" required value="Blackwood" />
+      </div>
       <div class="field">
         <label for="regUsername">Username</label>
         <input id="regUsername" name="regUsername" type="text" autocomplete="off" minlength="5" required />
@@ -82,9 +87,14 @@ export function Register(){
     const password = form.regPassword.value;
     const confirm = form.regConfirm.value;
     const consent = form.regConsent.checked;
+    const familyName = (form.familyName.value || '').trim();
 
     if (password !== confirm) {
       alert('Passwords do not match.');
+      return;
+    }
+    if (!familyName) {
+      alert('Family name is required.');
       return;
     }
     if (!consent) {
@@ -102,6 +112,7 @@ export function Register(){
 
     try {
       await registerUser(username, password);
+      setFamilyName(familyName);
       setLegalConsent(true);
       location.hash = '#/family-hub';
     } catch (err) {
@@ -115,6 +126,8 @@ export function Register(){
       await mockGoogleSignIn();
       const user = getActiveUser();
       toast.success(`Signed in as ${user?.username || 'Parent'}.`);
+      const fam = (form.familyName.value || '').trim();
+      if (fam) setFamilyName(fam);
       setLegalConsent(true);
       location.hash = '#/family-hub';
     } catch (err) {

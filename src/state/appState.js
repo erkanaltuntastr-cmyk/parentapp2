@@ -24,7 +24,8 @@ const initialState = {
   homework: [],
   quizDrafts: [],
   quizSessions: [],
-  currentSchoolTermStartDate: getDefaultTermStartDate()
+  currentSchoolTermStartDate: getDefaultTermStartDate(),
+  familyMembers: []
 };
 
 let state = null;
@@ -63,6 +64,10 @@ function migrateState(current){
   }
   if (!Array.isArray(current.teachers)) {
     current.teachers = [];
+    changed = true;
+  }
+  if (!Array.isArray(current.familyMembers)) {
+    current.familyMembers = [];
     changed = true;
   }
   if (typeof current.familyName !== 'string') {
