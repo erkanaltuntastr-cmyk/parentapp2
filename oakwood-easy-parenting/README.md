@@ -1,27 +1,73 @@
-﻿# Oakwood · easy parenting — Welcome Screen (Local‑First SPA Skeleton)
+# Oakwood LMS Motor (v2.9.9)
 
-Minimal framework‑free SPA scaffold with the **Welcome** screen and hash‑based routing, aligned with Oakwood v2.3 principles: Local‑First, hash routing, single AppState (to be added), no UI‑level state mutations.
+Local‑First, vanilla JS SPA for Oakwood Learning Management System. Hash‑based routing, single AppState, and high‑fidelity mock data for full Parent → AI → Pupil → Report → Homework → Re‑take flow.
 
-## Run locally
+**Live Demo**
+https://erkanaltuntastr-cmyk.github.io/parentapp2/  
+Enable GitHub Pages with source `/oakwood-easy-parenting` on `main` to activate the link.
 
-### Python
+## Features
+- Parent & pupil dashboards with subject Active/Passive control.
+- Week‑based curriculum greyscaling using current school week.
+- 3‑mode Quiz Wizard (Automatic, Quick Settings, Expert) with presets.
+- Mock Pedagogical Review with Apply/Proceed/Back actions.
+- Full quiz session: timer, progress, hints, explain‑after‑answer.
+- Positive‑first report with strengths, growth, critical needs.
+- Homework generation and gated retake logic.
+- Manual Quiz creation (paste or upload).
+- Local‑first state, no backend required.
+
+## Demo Credentials
+- Parent: `demo_parent` / `Oakwood*2026`
+- Pupil: `amelia5` / `Oakwood*2026`
+- Pupil: `oliver7` / `Oakwood*2026`
+- Admin: `oakwood_admin` / `Acorn*2026`
+
+## Run Locally
+```bash
 cd oakwood-easy-parenting
-python3 -m http.server 5173
-Open http://localhost:5173
+npm run dev:python
+```
+Open `http://localhost:5173`
 
-### VS Code Live Server
-Open the folder in VS Code
-Use Live Server on index.html
+Alternative:
+```bash
+npm run dev:node
+```
+
+## Quality Gates
+```bash
+npm run preflight
+npm run approve -- --screen final-lms-engine
+npm run gate
+```
 
 ## Routes
-- #/welcome (default)
-- #/add-child (placeholder)
-- #/signin (placeholder)
-- #/privacy, #/terms, #/cookies (placeholders)
+- `#/family-hub` (parent landing)
+- `#/child-dashboard` (pupil landing)
+- `#/child-overview`
+- `#/subjects`
+- `#/quiz-wizard` and `#/quiz-generator`
+- `#/quiz-session?id=...`
+- `#/quiz-report?id=...`
+- `#/manual-quiz`
+- `#/messages`
+- `#/settings`
 
-## Next steps
-- Add AppState with persisted facts (users, activeUserId, children, pin, __meta).
-- Implement guard pipeline stubs (auth → child → PIN → inactivity 5m) in router().
-- Build Add Child and Sign in screens as real views.
+## Mock Data
+- `data/mock-ai.json`
+- `data/mock-curriculum.json`
+- `data/mock-homework.json`
 
-UK English copy. WCAG 2.1 AA intent. Dot‑based SVG logo as placeholder.
+## GitHub Pages Deploy
+1. GitHub repo → Settings → Pages
+2. Source: `main` branch
+3. Folder: `/oakwood-easy-parenting`
+4. Save, then open the Live Demo URL above
+
+## Suggested Topics
+- vanilla-js
+- lms
+- education
+- local-first
+- pwa
