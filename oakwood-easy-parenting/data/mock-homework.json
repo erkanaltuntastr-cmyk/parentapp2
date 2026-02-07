@@ -1,0 +1,53 @@
+{
+  "subjects": {
+    "Mathematics": {
+      "memoryCards": [
+        "Equivalent fractions are different fractions that show the same value.",
+        "To add fractions with the same denominator, add the numerators and keep the denominator.",
+        "Multiply the numerator and denominator by the same number to find equivalent fractions."
+      ],
+      "formulaSheets": [
+        "Fraction of a number = (numerator \u00f7 denominator) \u00d7 whole.",
+        "Percentage = (part \u00f7 whole) \u00d7 100.",
+        "Ratio sharing: total parts = sum of ratio numbers."
+      ],
+      "commonMistakes": [
+        "Adding denominators when adding fractions.",
+        "Mixing up numerator/denominator positions.",
+        "Forgetting to simplify fractions."
+      ]
+    },
+    "English": {
+      "memoryCards": [
+        "Relative clauses add extra information using who, which, that, whose, where, when.",
+        "Modal verbs include might, could, should, would and show possibility.",
+        "Inference means using clues in the text to reach a conclusion."
+      ],
+      "formulaSheets": [
+        "Sentence checklist: capital letter, punctuation, sense, and flow.",
+        "Use commas to separate non-essential relative clauses.",
+        "Summaries should be brief and focused on key points."
+      ],
+      "commonMistakes": [
+        "Forgetting commas around extra information.",
+        "Using the wrong relative pronoun.",
+        "Copying too much text in a summary."
+      ]
+    },
+    "Science": {
+      "memoryCards": [
+        "Balanced forces mean an object stays still or moves at constant speed.",
+        "Friction is a force that opposes motion between surfaces.",
+        "Energy is transferred, not created or destroyed."
+      ],
+      "formulaSheets": [
+        "Weight = mass \u00d7 gravitational field strength.",
+        "Efficiency = (useful output \u00f7 total input) \u00d7 100."
+      ],
+      "commonMistakes": [
+        "Confusing mass and weight.",
+        "Thinking friction only happens when objects are moving."
+      ]
+    }
+  }
+}

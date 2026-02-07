@@ -9,7 +9,7 @@ export function Header(){
   const isAdmin = user?.isAdmin;
   const homeHref = isAdmin ? '#/admin'
     : isChild ? '#/child-dashboard'
-    : user ? '#/select-child'
+    : user ? '#/family-hub'
     : '#/welcome';
   wrap.className = `global-header${isChild ? ' child-header' : ''}`;
   const parent = getState().parent || null;
@@ -27,8 +27,8 @@ export function Header(){
     <nav class="header-nav" aria-label="Primary">
       ${isChild
         ? `<a href="#/child-dashboard">My Progress</a>`
-        : `<a href="#/messages">Messages${unread ? ` <span class="nav-badge">${unread}</span>` : ''}</a>
-           <a href="#/select-child">Children</a>
+        : `<a href="#/family-hub">Family Hub</a>
+           <a href="#/messages">Messages${unread ? ` <span class="nav-badge">${unread}</span>` : ''}</a>
            <a href="#/settings">Settings</a>`
       }
     </nav>
@@ -40,7 +40,8 @@ export function Header(){
       <div class="header-menu" role="menu" hidden>
         ${isChild
           ? `<a role="menuitem" href="#/child-dashboard">My Progress</a>`
-          : `<a role="menuitem" href="#/parent-profile">My Profile</a>
+          : `<a role="menuitem" href="#/family-hub">Family Hub</a>
+             <a role="menuitem" href="#/parent-profile">My Profile</a>
              <a role="menuitem" href="#/settings">Settings</a>`
         }
         <button type="button" role="menuitem" data-role="logout">Logout</button>

@@ -1,8 +1,10 @@
 import { getActiveChild, deleteChild, updateChildGroupName } from '../usecases/children.js';
-import { listSubjects } from '../usecases/subjects.js';
+import { listSubjects, setSubjectActive } from '../usecases/subjects.js';
 import { getState } from '../state/appState.js';
 import { getIconById } from '../utils/icons.js';
 import { getTeachersForChild } from '../usecases/teachers.js';
+import { getActiveUser, ADMIN_USERNAME } from '../usecases/auth.js';
+import { sendMessage } from '../usecases/messages.js';
 
 function scoreColor(score){
   if (score === null || score === undefined) return '#E2E8F0';
@@ -64,6 +66,9 @@ export function ChildOverview(){
     <div class="actions" style="margin-top: var(--space-4);">
       <a class="button" href="#/subjects">View subjects</a>
       <div style="margin-top: var(--space-2);">
+        <button type="button" class="button-secondary" data-role="suggest-subject">Suggest New Subject</button>
+      </div>
+      <div style="margin-top: var(--space-2);">
         <a class="button-secondary" href="#/add-child">Add another child</a>
       </div>
       <div style="margin-top: var(--space-1);">
@@ -119,41 +124,64 @@ export function ChildOverview(){
   editBtn.addEventListener('click', startEdit);
 
   const body = section.querySelector('.overview-body');
-  const subjects = listSubjects(child.id);
   const assignments = getState().assignments || [];
+  const quizSessions = (getState().quizSessions || []).filter(s => s.childId === child.id && s.status === 'completed');
 
-  const cards = document.createElement('div');
-  cards.className = 'overview-grid';
-  if (!subjects.length) {
-    const empty = document.createElement('div');
-    empty.className = 'empty-state';
-    empty.innerHTML = '<p class="subtitle">No subjects yet.</p>';
-    body.appendChild(empty);
-  } else {
-    subjects.forEach((subject, idx) => {
+  const renderSubjects = () => {
+    body.innerHTML = '';
+    const subjects = listSubjects(child.id);
+    const sorted = [...subjects].sort((a, b) => {
+      if (a.active === b.active) return a.name.localeCompare(b.name);
+      return a.active ? -1 : 1;
+    });
+
+    const cards = document.createElement('div');
+    cards.className = 'overview-grid';
+    if (!sorted.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = '<p class="subtitle">No subjects yet.</p>';
+      body.appendChild(empty);
+      return;
+    }
+
+    sorted.forEach((subject, idx) => {
       const scores = assignments
-        .filter(a => a.childId === child.id && a.subject === subject && typeof a.score === 'number')
+        .filter(a => a.childId === child.id && a.subject === subject.name && typeof a.score === 'number')
         .map(a => a.score);
+      quizSessions
+        .filter(s => s.subject === subject.name && typeof s.score === 'number')
+        .forEach(s => scores.push(s.score));
       const best = scores.length ? Math.max(...scores) : null;
       const color = scoreColor(best);
       const card = document.createElement('div');
-      card.className = 'overview-card';
+      card.className = `overview-card${subject.active ? '' : ' is-passive'}`;
       card.style.borderLeft = `4px solid ${color}`;
       card.innerHTML = `
         <div class="overview-card-head">
-          <span>${subject}</span>
+          <span>${subject.name}</span>
           <span class="score-badge" style="background:${color}">${best === null ? 'No data' : `${best}%`}</span>
         </div>
         <div class="help">Best score</div>
+        <label class="subject-toggle">
+          <span>${subject.active ? 'Active' : 'Passive'}</span>
+          <input type="checkbox" ${subject.active ? 'checked' : ''} aria-label="Toggle subject active status" />
+        </label>
       `;
+      card.querySelector('input[type="checkbox"]').addEventListener('change', e => {
+        setSubjectActive(child.id, subject.name, e.target.checked);
+        renderSubjects();
+      });
       cards.appendChild(card);
     });
-    if (subjects.length % 2 === 1) {
+    if (sorted.length % 2 === 1) {
       const last = cards.lastElementChild;
       if (last) last.classList.add('is-single');
     }
     body.appendChild(cards);
-  }
+  };
+
+  renderSubjects();
 
   section.querySelector('[data-role="edit-child"]').addEventListener('click', () => {
     alert('Edit child is coming next.');
@@ -163,6 +191,17 @@ export function ChildOverview(){
     if (!ok) return;
     deleteChild(child.id);
     location.hash = '#/select-child';
+  });
+
+  const suggestBtn = section.querySelector('[data-role="suggest-subject"]');
+  suggestBtn.addEventListener('click', () => {
+    const idea = prompt('Suggest a new subject to add:');
+    if (!idea) return;
+    const user = getActiveUser();
+    const from = user?.username || 'Parent';
+    const message = `Subject suggestion for ${child.name || 'child'}: ${idea.trim()}`;
+    sendMessage(from, ADMIN_USERNAME, message);
+    alert('Thanks! Your suggestion was sent to Admin.');
   });
 
   return section;

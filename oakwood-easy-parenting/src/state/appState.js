@@ -1,7 +1,16 @@
 import { getItem, setItem } from './storage.js';
 
+function getDefaultTermStartDate(){
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const startYear = month >= 8 ? year : year - 1;
+  const start = new Date(startYear, 8, 1);
+  return start.toISOString().slice(0, 10);
+}
+
 const initialState = {
-  __meta: { version: 1 },
+  __meta: { version: 1, demoSeeded: false },
   users: [],
   activeUserId: null,
   familyName: '',
@@ -11,7 +20,11 @@ const initialState = {
   pin: null,
   messages: [],
   assignments: [],
-  teachers: []
+  teachers: [],
+  homework: [],
+  quizDrafts: [],
+  quizSessions: [],
+  currentSchoolTermStartDate: getDefaultTermStartDate()
 };
 
 let state = null;
@@ -20,12 +33,32 @@ const ESOCT_HASH = '211e8bf37ebf0c114cac7f48a9682dcc60f1045c3852a609e28c3b3caa6b
 
 function migrateState(current){
   let changed = false;
+  if (!current.__meta || typeof current.__meta !== 'object') {
+    current.__meta = { version: 1, demoSeeded: false };
+    changed = true;
+  }
+  if (typeof current.__meta.demoSeeded !== 'boolean') {
+    current.__meta.demoSeeded = false;
+    changed = true;
+  }
   if (!Array.isArray(current.messages)) {
     current.messages = [];
     changed = true;
   }
   if (!Array.isArray(current.assignments)) {
     current.assignments = [];
+    changed = true;
+  }
+  if (!Array.isArray(current.homework)) {
+    current.homework = [];
+    changed = true;
+  }
+  if (!Array.isArray(current.quizDrafts)) {
+    current.quizDrafts = [];
+    changed = true;
+  }
+  if (!Array.isArray(current.quizSessions)) {
+    current.quizSessions = [];
     changed = true;
   }
   if (!Array.isArray(current.teachers)) {
@@ -36,6 +69,10 @@ function migrateState(current){
     current.familyName = '';
     changed = true;
   }
+  if (typeof current.currentSchoolTermStartDate !== 'string' || !current.currentSchoolTermStartDate.trim()) {
+    current.currentSchoolTermStartDate = getDefaultTermStartDate();
+    changed = true;
+  }
   if (Array.isArray(current.users)) {
     current.users = current.users.map(u => {
       if (String(u.username || '').toLowerCase() === 'esoct' && u.passwordHash !== ESOCT_HASH) {
@@ -43,6 +80,34 @@ function migrateState(current){
         return { ...u, passwordHash: ESOCT_HASH };
       }
       return u;
+    });
+  }
+  if (Array.isArray(current.children)) {
+    current.children = current.children.map(child => {
+      if (!Array.isArray(child.subjects)) return child;
+      const needsMigration = child.subjects.some(s => typeof s === 'string' || !s || typeof s !== 'object');
+      const nextSubjects = child.subjects.map(s => {
+        if (!s || typeof s !== 'object') {
+          return { name: String(s || '').trim(), active: true, addedAt: new Date().toISOString() };
+        }
+        const name = String(s.name || s.subject || '').trim();
+        if (!name) return null;
+        return {
+          name,
+          active: typeof s.active === 'boolean' ? s.active : true,
+          addedAt: s.addedAt || new Date().toISOString()
+        };
+      }).filter(Boolean);
+      if (needsMigration) {
+        changed = true;
+        return { ...child, subjects: nextSubjects };
+      }
+      const normalized = nextSubjects.some(s => typeof s.active !== 'boolean');
+      if (normalized) {
+        changed = true;
+        return { ...child, subjects: nextSubjects };
+      }
+      return child;
     });
   }
   if (Array.isArray(current.children) && Array.isArray(current.users) && current.users.length === 1) {

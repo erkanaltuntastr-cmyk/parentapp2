@@ -1,7 +1,8 @@
 import { getActiveChild, getCurriculumSelection, setCurriculumSelection } from '../usecases/children.js';
-import { addSubject, listSubjects } from '../usecases/subjects.js';
+import { addSubject, listSubjectNames } from '../usecases/subjects.js';
 import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/curriculum.js';
 import { getState } from '../state/appState.js';
+import { getCurrentSchoolWeek, parseEstimatedWeek } from '../utils/schoolWeek.js';
 
 const SAMPLE_SUBJECTS = [
   'English',
@@ -63,6 +64,15 @@ export function SubjectCurriculum(){
 
   const render = () => {
     body.innerHTML = '';
+    const currentWeek = getCurrentSchoolWeek();
+
+    const weekBar = document.createElement('div');
+    weekBar.className = 'week-banner';
+    weekBar.innerHTML = `
+      <div class="help">Current school week</div>
+      <div class="week-number">Week ${currentWeek}</div>
+    `;
+    body.appendChild(weekBar);
 
     const boxWrap = document.createElement('div');
     boxWrap.className = 'subject-boxes';
@@ -92,7 +102,7 @@ export function SubjectCurriculum(){
 
     if (!selected) return;
 
-    const added = listSubjects(child.id);
+    const added = listSubjectNames(child.id);
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
     addBtn.className = 'button';
@@ -131,6 +141,13 @@ export function SubjectCurriculum(){
 
     Object.entries(groups).forEach(([main, entries]) => {
       const subtopics = unique(entries.map(e => e.sub || 'General'));
+      const weekMap = {};
+      entries.forEach(entry => {
+        const label = entry.sub || 'General';
+        if (!weekMap[label]) weekMap[label] = entry.estimatedWeek || '';
+      });
+      const mainWeek = entries.map(e => parseEstimatedWeek(e.estimatedWeek)).filter(Boolean);
+      const mainWeekLabel = mainWeek.length ? `Expected Week: ${Math.min(...mainWeek)}` : '';
       const mainSelected = subtopics.length
         ? subtopics.every(s => selection.sub?.[main]?.[s])
         : Boolean(selection.main?.[main]);
@@ -145,6 +162,7 @@ export function SubjectCurriculum(){
           </label>
           <button type="button" class="expand-btn" aria-label="Toggle subtopics">+</button>
         </div>
+        ${mainWeekLabel ? `<div class="help expected-week">${mainWeekLabel}</div>` : ''}
       `;
 
       const mainCheck = row.querySelector('input[type="checkbox"]');
@@ -162,11 +180,20 @@ export function SubjectCurriculum(){
       subList.className = `subtopic-list${expanded.has(main) ? ' is-open' : ''}`;
       subtopics.forEach(sub => {
         const checked = Boolean(selection.sub?.[main]?.[sub]);
+        const rawWeek = weekMap[sub] || '';
+        const parsedWeek = parseEstimatedWeek(rawWeek);
+        const weekLabel = rawWeek ? `Expected Week: ${rawWeek}` : '';
+        let weekClass = '';
+        if (parsedWeek) {
+          if (parsedWeek < currentWeek) weekClass = ' is-complete';
+          if (parsedWeek > currentWeek) weekClass = ' is-future';
+        }
         const subRow = document.createElement('label');
-        subRow.className = 'subtopic-item';
+        subRow.className = `subtopic-item${weekClass}`;
         subRow.innerHTML = `
           <input type="checkbox" ${checked ? 'checked' : ''} />
           <span>${sub}</span>
+          ${weekLabel ? `<span class="subtopic-week">${weekLabel}</span>` : ''}
         `;
         subRow.querySelector('input').addEventListener('change', e => {
           const next = normaliseSelection(selection);

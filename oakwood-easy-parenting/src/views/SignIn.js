@@ -58,8 +58,7 @@ export function SignIn(){
         location.hash = '#/child-dashboard';
         return;
       }
-      const children = (getState().children || []);
-      location.hash = children.length ? '#/select-child' : '#/add-child';
+      location.hash = '#/family-hub';
     } catch (err) {
       alert(err.message || 'Sign in failed.');
     }
@@ -71,8 +70,7 @@ export function SignIn(){
       await mockGoogleSignIn();
       const user = getActiveUser();
       alert(`Signed in as ${user?.username || 'Parent'}.`);
-      const children = (getState().children || []);
-      location.hash = children.length ? '#/select-child' : '#/add-child';
+      location.hash = '#/family-hub';
     } catch (err) {
       alert(err.message || 'Google sign-in failed.');
     }

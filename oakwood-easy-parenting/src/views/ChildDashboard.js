@@ -1,6 +1,8 @@
 import { getActiveUser, ADMIN_USERNAME } from '../usecases/auth.js';
 import { listAssignments } from '../usecases/assignments.js';
 import { listSubjects } from '../usecases/subjects.js';
+import { listQuizSessions } from '../usecases/quizzes.js';
+import { listHomework, markHomeworkComplete } from '../usecases/homework.js';
 import { getState } from '../state/appState.js';
 import { setActiveChild } from '../usecases/children.js';
 import { getTeachersForChild } from '../usecases/teachers.js';
@@ -30,6 +32,9 @@ export function ChildDashboard(){
   const pending = listAssignments(user.childId, 'pending');
   const completed = listAssignments(user.childId, 'completed');
   const subjects = listSubjects(user.childId);
+  const quizPending = listQuizSessions(user.childId, 'pending');
+  const quizCompleted = listQuizSessions(user.childId, 'completed');
+  const homeworkItems = listHomework(user.childId);
   const child = (getState().children || []).find(c => c.id === user.childId);
   const teachers = user.childId ? getTeachersForChild(user.childId) : [];
   const parentUser = child?.userId ? getState().users.find(u => u.id === child.userId) : null;
@@ -46,6 +51,12 @@ export function ChildDashboard(){
       latestScores[a.subject] = a;
     }
   });
+  quizCompleted.forEach(q => {
+    if (!q.subject) return;
+    if (!latestScores[q.subject] || (q.completedAt || '') > (latestScores[q.subject].completedAt || '')) {
+      latestScores[q.subject] = q;
+    }
+  });
 
   section.innerHTML = `
     <h1 class="h1">Learning Mode</h1>
@@ -55,16 +66,16 @@ export function ChildDashboard(){
       <h2 class="h2">Subject Grid</h2>
       <div class="subject-grid">
         ${subjects.length ? subjects.map(s => {
-          const score = latestScores[s]?.score;
+          const score = latestScores[s.name]?.score;
           const status = scoreToStatus(score);
           const label = status === 'green' ? 'High'
             : status === 'yellow' ? 'Working towards'
             : status === 'orange' ? 'Support needed'
             : 'No data';
           return `
-            <div class="subject-tile ${status}">
-              <div class="subject-name">${s}</div>
-              <div class="subject-status">${label}</div>
+            <div class="subject-tile ${status}${s.active ? '' : ' is-passive'}">
+              <div class="subject-name">${s.name}</div>
+              <div class="subject-status">${label}${s.active ? '' : ' (Passive)'}</div>
             </div>
           `;
         }).join('') : '<p class="help">No subjects assigned yet.</p>'}
@@ -88,14 +99,53 @@ export function ChildDashboard(){
     </div>
 
     <div class="child-section" style="margin-top: var(--space-4);">
+      <h2 class="h2">My Quizzes</h2>
+      <div class="mission-list">
+        ${quizPending.length ? '' : '<p class="help">No quizzes assigned yet.</p>'}
+        ${quizPending.map(q => `
+          <div class="mission-card">
+            <div>
+              <div class="mission-title">${q.subject} - ${q.topics?.[0] || 'Quiz'}</div>
+              <div class="help">Quiz \u2022 Timer ${q.config?.timerMinutes || 0} min</div>
+            </div>
+            <a class="button" href="#/quiz-session?id=${q.id}">Start</a>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="child-section" style="margin-top: var(--space-4);">
+      <h2 class="h2">Homework</h2>
+      <div class="homework-list">
+        ${homeworkItems.length ? homeworkItems.map(item => `
+          <div class="homework-item ${item.status === 'completed' ? 'is-complete' : ''}">
+            <div class="homework-title">${item.title}</div>
+            <div class="help">${item.content}</div>
+            <div class="actions-row">
+              <button type="button" class="button-secondary" data-homework="${item.id}" ${item.status === 'completed' ? 'disabled' : ''}>Mark Complete</button>
+            </div>
+          </div>
+        `).join('') : '<p class="help">No homework items yet.</p>'}
+      </div>
+    </div>
+
+    <div class="child-section" style="margin-top: var(--space-4);">
       <h2 class="h2">Achievement Gallery</h2>
       <div class="mission-list">
-        ${completed.length ? '' : '<p class="help">No achievements yet.</p>'}
+        ${(completed.length || quizCompleted.length) ? '' : '<p class="help">No achievements yet.</p>'}
         ${completed.map(a => `
           <div class="mission-card completed">
             <div>
               <div class="mission-title">${a.subject} - ${a.topic}</div>
               <div class="help">Score ${a.score || 0}% - Completed</div>
+            </div>
+          </div>
+        `).join('')}
+        ${quizCompleted.map(q => `
+          <div class="mission-card completed">
+            <div>
+              <div class="mission-title">${q.subject} - ${q.topics?.[0] || 'Quiz'}</div>
+              <div class="help">Score ${q.score || 0}% - Completed</div>
             </div>
           </div>
         `).join('')}
@@ -176,6 +226,15 @@ export function ChildDashboard(){
       thread.innerHTML = renderMessages(user.username);
     });
   }
+
+  section.querySelectorAll('[data-homework]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-homework');
+      if (!id) return;
+      markHomeworkComplete(id);
+      location.hash = '#/child-dashboard';
+    });
+  });
 
   return section;
 }

@@ -1,5 +1,5 @@
 import { getActiveChild } from '../usecases/children.js';
-import { listSubjects, addSubject, removeSubject } from '../usecases/subjects.js';
+import { listSubjects, listSubjectNames, addSubject, removeSubject } from '../usecases/subjects.js';
 import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/curriculum.js';
 
 export function Subjects(){
@@ -38,7 +38,8 @@ export function Subjects(){
     body.innerHTML = '';
 
     const added = listSubjects(childId);
-    if (!added.length) {
+    const addedNames = added.map(s => s.name);
+    if (!addedNames.length) {
       const empty = document.createElement('p');
       empty.className = 'subtitle';
       empty.textContent = 'No subjects yet.';
@@ -46,7 +47,7 @@ export function Subjects(){
     } else {
       const list = document.createElement('div');
       list.className = 'subject-list';
-      added.forEach(item => {
+      addedNames.forEach(item => {
         const row = document.createElement('div');
         row.className = 'subject-row';
         const label = document.createElement('span');
@@ -86,7 +87,7 @@ export function Subjects(){
     addButton.type = 'button';
     addButton.className = 'button';
     addButton.textContent = 'Add Subject';
-    addButton.disabled = !selectedSubject || listSubjects(childId).includes(selectedSubject);
+    addButton.disabled = !selectedSubject || listSubjectNames(childId).includes(selectedSubject);
     addButton.addEventListener('click', () => {
       if (!selectedSubject) return;
       addSubject(childId, selectedSubject);

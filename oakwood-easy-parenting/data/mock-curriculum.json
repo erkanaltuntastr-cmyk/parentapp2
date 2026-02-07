@@ -1,0 +1,109 @@
+{
+  "subjects": [
+    {
+      "id": "maths-y5",
+      "name": "Mathematics",
+      "year": 5,
+      "active": true,
+      "topics": [
+        {
+          "name": "Fractions",
+          "week": 8,
+          "difficulty": "Medium",
+          "subtopics": [
+            { "name": "Equivalent Fractions", "week": 8 },
+            { "name": "Adding Fractions", "week": 9 },
+            { "name": "Mixed Numbers", "week": 10 }
+          ]
+        },
+        {
+          "name": "Decimals",
+          "week": 12,
+          "difficulty": "Medium",
+          "subtopics": [
+            { "name": "Tenths and Hundredths", "week": 12 },
+            { "name": "Rounding Decimals", "week": 13 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eng-y5",
+      "name": "English",
+      "year": 5,
+      "active": true,
+      "topics": [
+        {
+          "name": "Grammar & Punctuation",
+          "week": 6,
+          "difficulty": "Medium",
+          "subtopics": [
+            { "name": "Relative Clauses", "week": 6 },
+            { "name": "Modal Verbs", "week": 7 }
+          ]
+        },
+        {
+          "name": "Reading Comprehension",
+          "week": 11,
+          "difficulty": "Medium",
+          "subtopics": [
+            { "name": "Inference", "week": 11 },
+            { "name": "Summarising", "week": 12 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "maths-y7",
+      "name": "Mathematics",
+      "year": 7,
+      "active": true,
+      "topics": [
+        {
+          "name": "Algebra Foundations",
+          "week": 5,
+          "difficulty": "Medium",
+          "subtopics": [
+            { "name": "Collecting Like Terms", "week": 5 },
+            { "name": "Simple Equations", "week": 6 }
+          ]
+        },
+        {
+          "name": "Ratio & Proportion",
+          "week": 9,
+          "difficulty": "Medium",
+          "subtopics": [
+            { "name": "Sharing in Ratios", "week": 9 },
+            { "name": "Unitary Method", "week": 10 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "science-y7",
+      "name": "Science",
+      "year": 7,
+      "active": true,
+      "topics": [
+        {
+          "name": "Forces",
+          "week": 7,
+          "difficulty": "Medium",
+          "subtopics": [
+            { "name": "Balanced Forces", "week": 7 },
+            { "name": "Friction", "week": 8 }
+          ]
+        },
+        {
+          "name": "Energy",
+          "week": 12,
+          "difficulty": "Medium",
+          "subtopics": [
+            { "name": "Energy Transfers", "week": 12 },
+            { "name": "Efficiency", "week": 13 }
+          ]
+        }
+      ]
+    }
+  ]
+}

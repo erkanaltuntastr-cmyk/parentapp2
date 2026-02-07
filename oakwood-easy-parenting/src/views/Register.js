@@ -1,5 +1,6 @@
 import { registerUser, mockGoogleSignIn, getActiveUser, setLegalConsent } from '../usecases/auth.js';
 import { attachPasswordToggles } from '../utils/passwordToggle.js';
+import { toast } from '../utils/toast.js';
 
 export function Register(){
   const section = document.createElement('section');
@@ -42,6 +43,18 @@ export function Register(){
         </label>
       </div>
 
+      <div class="field">
+        <label for="regMethod">Verification Method (Mock)</label>
+        <select id="regMethod" name="regMethod">
+          <option value="email">Email</option>
+          <option value="whatsapp">WhatsApp</option>
+        </select>
+      </div>
+      <div class="field verification-row">
+        <button type="button" class="button-secondary" data-role="send-code">Send Verification Code</button>
+        <input id="regCode" name="regCode" type="text" placeholder="Enter code" autocomplete="off" />
+      </div>
+
       <div class="actions-row" style="margin-top: var(--space-3);">
         <button type="submit" class="button">Create Profile</button>
         <a class="button-secondary" href="#/signin">Back to sign in</a>
@@ -54,6 +67,14 @@ export function Register(){
   `;
 
   const form = section.querySelector('form');
+  let verificationCode = '';
+  let codeSent = false;
+  const sendBtn = section.querySelector('[data-role="send-code"]');
+  sendBtn.addEventListener('click', () => {
+    verificationCode = '84920';
+    codeSent = true;
+    toast.info(`Verification code: ${verificationCode}`);
+  });
   attachPasswordToggles(section);
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -70,11 +91,19 @@ export function Register(){
       alert('You must accept the legal terms to continue.');
       return;
     }
+    if (!codeSent) {
+      toast.error('Send a verification code before continuing.');
+      return;
+    }
+    if (form.regCode.value.trim() !== verificationCode) {
+      toast.error('Verification code does not match.');
+      return;
+    }
 
     try {
       await registerUser(username, password);
       setLegalConsent(true);
-      location.hash = '#/add-child';
+      location.hash = '#/family-hub';
     } catch (err) {
       alert(err.message || 'Registration failed.');
     }
@@ -85,9 +114,9 @@ export function Register(){
     try {
       await mockGoogleSignIn();
       const user = getActiveUser();
-      alert(`Signed in as ${user?.username || 'Parent'}.`);
+      toast.success(`Signed in as ${user?.username || 'Parent'}.`);
       setLegalConsent(true);
-      location.hash = '#/add-child';
+      location.hash = '#/family-hub';
     } catch (err) {
       alert(err.message || 'Google sign-in failed.');
     }

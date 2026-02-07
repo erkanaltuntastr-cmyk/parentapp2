@@ -10,6 +10,11 @@ import { ParentProfile } from './views/ParentProfile.js';
 import { ForgotPassword } from './views/ForgotPassword.js';
 import { Messages } from './views/Messages.js';
 import { AdminPanel } from './views/AdminPanel.js';
+import { FamilyHub } from './views/FamilyHub.js';
+import { QuizWizard } from './views/QuizWizard.js';
+import { QuizSession } from './views/QuizSession.js';
+import { QuizReport } from './views/QuizReport.js';
+import { ManualQuiz } from './views/ManualQuiz.js';
 import { Header } from './components/Header.js';
 import { getActiveChild } from './usecases/children.js';
 import { getState } from './state/appState.js';
@@ -35,9 +40,15 @@ const routes = {
   '#/forgot-password': ForgotPassword,
   '#/parent-profile': ParentProfile,
   '#/settings': Settings,
+  '#/family-hub': FamilyHub,
   '#/admin': AdminPanel,
   '#/child-dashboard': ChildDashboard,
   '#/take-task': TakeTask,
+  '#/quiz-wizard': QuizWizard,
+  '#/quiz-generator': QuizWizard,
+  '#/quiz-session': QuizSession,
+  '#/quiz-report': QuizReport,
+  '#/manual-quiz': ManualQuiz,
   '#/pin-entry': PinEntry,
   '#/pin-setup': PinSetup,
   '#/export': () => placeholder('Export'),
@@ -73,7 +84,7 @@ async function guardAuth(route){
     return null;
   }
   if (user?.role === 'child') {
-    const childAllowed = ['#/child-dashboard', '#/take-task'];
+    const childAllowed = ['#/child-dashboard', '#/take-task', '#/quiz-session', '#/quiz-report'];
     if (!childAllowed.includes(route)) {
       return { redirect: '#/child-dashboard' };
     }
@@ -86,8 +97,8 @@ async function guardChildSelected(route){
   const state = getState();
   const children = state.children || [];
   const activeValid = state.activeChildId && children.some(c => c.id === state.activeChildId);
-  const needsChild = ['#/child-overview', '#/subjects'];
-  const target = children.length ? '#/select-child' : '#/add-child';
+  const needsChild = ['#/child-overview', '#/subjects', '#/quiz-wizard', '#/manual-quiz'];
+  const target = children.length ? '#/family-hub' : '#/add-child';
   if (route === '#/welcome' && !activeValid) {
     return { redirect: target };
   }
