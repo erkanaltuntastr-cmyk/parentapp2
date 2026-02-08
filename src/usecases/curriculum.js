@@ -119,7 +119,9 @@ export async function loadCurriculum(){
       const dataLines = hasHeader ? lines.slice(1) : lines;
       const rows = dataLines.map(line => {
         const raw = line.trim();
-        const inner = raw.startsWith('"') && raw.endsWith('"') ? raw.slice(1, -1) : raw;
+        const inner = raw.startsWith('"') && raw.endsWith('"')
+          ? raw.slice(1, -1).replace(/""/g, '"')
+          : raw;
         const cols = parseCsvLine(inner);
         return {
           year: normaliseYear((cols[yearIdx] || '').trim()),
