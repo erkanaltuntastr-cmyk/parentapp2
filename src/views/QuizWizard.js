@@ -302,19 +302,34 @@ export function QuizWizard(){
     <div class="wizard-step is-active" data-step="1">
       <div class="wizard-modes">
         <button type="button" class="mode-card${mode === 'automatic' ? ' is-selected' : ''}" data-mode="automatic">
-          <div class="mode-icon">⚡</div>
-          <h3 class="h3">Automatic</h3>
-          <p class="help">Pre-set quizzes by difficulty level</p>
+          <div class="mode-card-header">
+            <div class="mode-icon">⚡</div>
+          </div>
+          <div class="mode-card-body">
+            <h3 class="h3">Automatic</h3>
+            <p class="help">Pre-set quizzes by difficulty level</p>
+            <div class="mode-card-footer">Start →</div>
+          </div>
         </button>
         <button type="button" class="mode-card${mode === 'quick' ? ' is-selected' : ''}" data-mode="quick">
-          <div class="mode-icon">⚙️</div>
-          <h3 class="h3">Quick Settings</h3>
-          <p class="help">Customize in seconds</p>
+          <div class="mode-card-header">
+            <div class="mode-icon">⚙️</div>
+          </div>
+          <div class="mode-card-body">
+            <h3 class="h3">Quick Settings</h3>
+            <p class="help">Customize in seconds</p>
+            <div class="mode-card-footer">Start →</div>
+          </div>
         </button>
         <button type="button" class="mode-card${mode === 'expert' ? ' is-selected' : ''}" data-mode="expert">
-          <div class="mode-icon">🎯</div>
-          <h3 class="h3">Expert</h3>
-          <p class="help">Full control over all options</p>
+          <div class="mode-card-header">
+            <div class="mode-icon">🎯</div>
+          </div>
+          <div class="mode-card-body">
+            <h3 class="h3">Expert</h3>
+            <p class="help">Full control over all options</p>
+            <div class="mode-card-footer">Start →</div>
+          </div>
         </button>
       </div>
 
@@ -322,9 +337,13 @@ export function QuizWizard(){
         <div class="preset-grid">
           ${Object.entries(presets).map(([key, item]) => `
             <button type="button" class="preset-card${key === preset ? ' is-selected' : ''}" data-preset="${key}">
-              <h3 class="h3">${item.label}</h3>
-              <p class="help">${item.counts.multipleChoice + item.counts.gapFill + item.counts.openEnded} questions</p>
-              <p class="help">Timer ${item.timer} min</p>
+              <div class="preset-card-header">🏆</div>
+              <div class="preset-card-body">
+                <h3 class="h3">${item.label}</h3>
+                <p class="help">${item.counts.multipleChoice + item.counts.gapFill + item.counts.openEnded} questions</p>
+                <p class="help">Timer ${item.timer} min</p>
+                <div class="preset-card-footer">Start →</div>
+              </div>
             </button>
           `).join('')}
         </div>
@@ -462,6 +481,7 @@ export function QuizWizard(){
       section.querySelectorAll('.wizard-panel').forEach(panel => {
         panel.classList.toggle('is-open', panel.getAttribute('data-panel') === mode);
       });
+      setStep(2);
     });
   });
 
