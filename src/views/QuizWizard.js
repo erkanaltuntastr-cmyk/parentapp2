@@ -318,7 +318,7 @@ export function QuizWizard(){
         </button>
       </div>
 
-      <div class="wizard-panel is-open" data-panel="automatic">
+      <div class="wizard-panel" data-panel="automatic">
         <div class="preset-grid">
           ${Object.entries(presets).map(([key, item]) => `
             <button type="button" class="preset-card${key === preset ? ' is-selected' : ''}" data-preset="${key}">
