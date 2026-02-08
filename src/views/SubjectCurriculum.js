@@ -230,7 +230,9 @@ export function SubjectCurriculum(){
             <button type="button" class="button-secondary" data-role="clear-all">Clear all</button>
           </div>
         </div>
-        <div class="curriculum-table-wrap"></div>
+        <div class="curriculum-scroll-area">
+          <div class="curriculum-table-wrap"></div>
+        </div>
       `;
 
       const tableWrap = body.querySelector('.curriculum-table-wrap');
