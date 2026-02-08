@@ -356,6 +356,9 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   padding-right: 4px;
   -webkit-overflow-scrolling: touch;
 }
+.curriculum-table-container .curriculum-scroll-area{
+  max-height: min(55vh, 520px);
+}
 .curriculum-table-wrap{ 
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -416,6 +419,9 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 }
 .curriculum-table-head .curriculum-table th{
   border-bottom: none;
+}
+.curriculum-table-container .curriculum-table-head .curriculum-table th{
+  border-bottom: 1px solid var(--border-200);
 }
 .curriculum-table .subtopic-cell{
   font-size: var(--fs-300);
@@ -732,6 +738,20 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   background: #F8FAFC;
   overflow: hidden;
   margin-bottom: var(--space-3);
+}
+.curriculum-table-container{
+  border-radius: 12px;
+  border: 1px solid var(--border-200);
+  background: #F8FAFC;
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+}
+.curriculum-table-container .curriculum-table-head{
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--border-200);
 }
 .week-warning{
   margin-top: 4px;

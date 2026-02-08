@@ -240,9 +240,11 @@ export function SubjectCurriculum(){
             <button type="button" class="button-secondary" data-role="clear-all">Clear all</button>
           </div>
         </div>
-        <div class="curriculum-table-head"></div>
-        <div class="curriculum-scroll-area">
-          <div class="curriculum-table-body"></div>
+        <div class="curriculum-table-container">
+          <div class="curriculum-table-head"></div>
+          <div class="curriculum-scroll-area">
+            <div class="curriculum-table-body"></div>
+          </div>
         </div>
       `;
 
