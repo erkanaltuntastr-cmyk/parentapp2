@@ -300,10 +300,22 @@ export function QuizWizard(){
     </div>
 
     <div class="wizard-step is-active" data-step="1">
-      <div class="wizard-tabs">
-        <button type="button" class="tab-btn is-selected" data-mode="automatic">Automatic</button>
-        <button type="button" class="tab-btn" data-mode="quick">Quick Settings</button>
-        <button type="button" class="tab-btn" data-mode="expert">Expert</button>
+      <div class="wizard-modes">
+        <button type="button" class="mode-card${mode === 'automatic' ? ' is-selected' : ''}" data-mode="automatic">
+          <div class="mode-icon">⚡</div>
+          <h3 class="h3">Automatic</h3>
+          <p class="help">Pre-set quizzes by difficulty level</p>
+        </button>
+        <button type="button" class="mode-card${mode === 'quick' ? ' is-selected' : ''}" data-mode="quick">
+          <div class="mode-icon">⚙️</div>
+          <h3 class="h3">Quick Settings</h3>
+          <p class="help">Customize in seconds</p>
+        </button>
+        <button type="button" class="mode-card${mode === 'expert' ? ' is-selected' : ''}" data-mode="expert">
+          <div class="mode-icon">🎯</div>
+          <h3 class="h3">Expert</h3>
+          <p class="help">Full control over all options</p>
+        </button>
       </div>
 
       <div class="wizard-panel is-open" data-panel="automatic">
@@ -445,7 +457,7 @@ export function QuizWizard(){
   section.querySelectorAll('[data-mode]').forEach(btn => {
     btn.addEventListener('click', () => {
       mode = btn.getAttribute('data-mode');
-      section.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('is-selected'));
+      section.querySelectorAll('.mode-card').forEach(b => b.classList.remove('is-selected'));
       btn.classList.add('is-selected');
       section.querySelectorAll('.wizard-panel').forEach(panel => {
         panel.classList.toggle('is-open', panel.getAttribute('data-panel') === mode);
