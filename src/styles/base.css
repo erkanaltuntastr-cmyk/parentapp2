@@ -377,9 +377,13 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 }
 .select-cell{
   display:flex;
+  flex-direction: column;
   align-items:center;
-  justify-content: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 6px;
+}
+.select-cell input[type="checkbox"]{
+  margin-bottom: 2px;
 }
 .future-badge{
   display:inline-flex;
@@ -401,9 +405,14 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 .curriculum-table td{
   padding: 16px 12px;
   border-bottom: 1px solid var(--border-200);
+  border-right: 1px solid var(--border-100);
   font-size: var(--fs-300);
   line-height: 1.5;
   vertical-align: top;
+}
+.curriculum-table th:last-child,
+.curriculum-table td:last-child{
+  border-right: none;
 }
 .curriculum-table th{
   font-weight:700;
@@ -453,6 +462,36 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 }
 .curriculum-row.is-complete{ background:#F8FAFC; }
 .curriculum-row.is-future{ color:#94A3B8; }
+.main-topic-row{
+  background: #F8FAFC;
+  font-weight: 600;
+}
+.main-topic-row.is-future{
+  color: #94A3B8;
+  background: #F1F5F9;
+}
+.main-topic-header{
+  font-weight: 700;
+  color: var(--ink-700);
+  font-size: var(--fs-350);
+}
+.main-topic-row td:not(.select-cell-wrapper){
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.subtopic-row{
+  background: #FFF;
+}
+.subtopic-row.is-complete{
+  background: #F8FAFC;
+}
+.subtopic-row.is-future{
+  color: #94A3B8;
+  background: #F1F5F9;
+}
+.subtopic-row td:first-child{
+  width: 16px;
+}
 .curriculum-table input[type="checkbox"]{ transform: scale(1.05); }
 .topic-list{ display:flex; flex-direction:column; gap: 8px; margin-top: var(--space-3); text-align:left; }
 .topic-row{
@@ -629,15 +668,25 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding: 10px 14px;
+  padding: 14px 16px;
   border-radius: 12px;
   background: #F8FAFC;
   border: 1px solid var(--border-200);
   margin-bottom: var(--space-3);
+  font-size: var(--fs-400);
+  font-weight: 600;
+  text-align: left;
+}
+.week-banner-label{
+  color: var(--ink-700);
+  flex: 1;
 }
 .week-number{
   font-weight: 700;
   color: var(--ink-700);
+  font-size: var(--fs-400);
+  white-space: nowrap;
+  margin-left: 12px;
 }
 .week-warning{
   margin-top: 4px;

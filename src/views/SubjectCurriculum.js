@@ -124,11 +124,7 @@ export function SubjectCurriculum(){
   const body = section.querySelector('.curriculum-body');
   const weekBanner = `
     <div class="week-banner">
-      <div>
-        <div class="help">School Week</div>
-        <div class="help">Approximate – excludes holidays.</div>
-        ${termStartFuture ? '<div class="week-warning">Term start date future – check settings</div>' : ''}
-      </div>
+      <div class="week-banner-label">School Week / Approximate – excludes holidays${termStartFuture ? ' • Term start date future – check settings' : ''}</div>
       <div class="week-number">Week ${currentWeek} / ${totalWeeks}</div>
     </div>
   `;
@@ -260,50 +256,66 @@ export function SubjectCurriculum(){
 
       let rowsMarkup = '';
       if (showSubtopics) {
-        const flatRows = [];
-        Object.entries(groups).forEach(([main, entries]) => {
-          entries.forEach(entry => {
-            flatRows.push({
-              main,
-              sub: entry.sub || 'General',
-              estimatedWeek: entry.estimatedWeek || '-',
-              difficulty: entry.difficulty || '-',
-              weekValue: parseEstimatedWeek(entry.estimatedWeek)
+        const mainTopics = Object.entries(groups)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([main, entries]) => {
+            const subs = entries.map(e => ({
+              sub: e.sub || 'General',
+              estimatedWeek: e.estimatedWeek || '-',
+              difficulty: e.difficulty || '-',
+              weekValue: parseEstimatedWeek(e.estimatedWeek)
+            })).sort((a, b) => {
+              const wa = a.weekValue || 999;
+              const wb = b.weekValue || 999;
+              if (wa !== wb) return wa - wb;
+              return a.sub.localeCompare(b.sub);
             });
+            const weeks = entries.map(e => parseEstimatedWeek(e.estimatedWeek)).filter(Boolean);
+            const diffs = entries.map(e => Number(e.difficulty)).filter(n => Number.isFinite(n));
+            return { main, subs, weeks, diffs };
           });
-        });
-        flatRows.sort((a, b) => {
-          const main = a.main.localeCompare(b.main);
-          if (main !== 0) return main;
-          const wa = a.weekValue || 999;
-          const wb = b.weekValue || 999;
-          if (wa !== wb) return wa - wb;
-          return a.sub.localeCompare(b.sub);
-        });
-        rowsMarkup = flatRows.map(item => {
-          const checked = Boolean(selection.sub?.[item.main]?.[item.sub]);
-          const weekValue = item.weekValue;
-          const isFuture = weekValue && weekValue > currentWeek;
-          const statusClass = weekValue ? (weekValue <= currentWeek ? ' is-complete' : ' is-future') : '';
-          const badge = isFuture
+        rowsMarkup = mainTopics.map(group => {
+          const mainChecked = Boolean(selection.main?.[group.main]);
+          const hasFuture = futureMains.has(group.main);
+          const minWeek = group.weeks.length ? Math.min(...group.weeks) : null;
+          const statusClass = minWeek ? (minWeek <= currentWeek ? ' is-complete' : ' is-future') : '';
+          const badge = hasFuture
             ? `<span class="future-badge" title="Scheduled for later – may be advanced.">${clockIcon}<span>Future</span></span>`
             : '';
-          const diffNum = Number(item.difficulty);
-          const diffClass = Number.isFinite(diffNum) ? (diffNum <= 1 ? 'diff-easy' : diffNum === 2 ? 'diff-medium' : 'diff-hard') : '';
-          return `
-            <tr class="curriculum-row${statusClass}">
-              <td class="main-topic-cell">${toProperCase(item.main)}</td>
-              <td class="subtopic-cell">${toSentenceCase(item.sub)}</td>
-              <td class="week-cell">${item.estimatedWeek || '-'}</td>
-              <td class="difficulty-cell ${diffClass}">${item.difficulty || '-'}</td>
+          const mainRow = `
+            <tr class="main-topic-row${statusClass}">
+              <td class="main-topic-header">${toProperCase(group.main)}</td>
+              <td></td>
+              <td></td>
+              <td></td>
               <td class="select-cell-wrapper">
                 <div class="select-cell">
-                  <input type="checkbox" data-role="sub-toggle" data-main="${item.main}" data-sub="${item.sub}" ${checked ? 'checked' : ''} />
+                  <input type="checkbox" data-role="main-toggle" data-main="${group.main}" ${mainChecked ? 'checked' : ''} />
                   ${badge}
                 </div>
               </td>
             </tr>
           `;
+          const subRows = group.subs.map(item => {
+            const checked = Boolean(selection.sub?.[group.main]?.[item.sub]);
+            const diffNum = Number(item.difficulty);
+            const diffClass = Number.isFinite(diffNum) ? (diffNum <= 1 ? 'diff-easy' : diffNum === 2 ? 'diff-medium' : 'diff-hard') : '';
+            const itemStatusClass = item.weekValue ? (item.weekValue <= currentWeek ? ' is-complete' : ' is-future') : '';
+            return `
+              <tr class="subtopic-row${itemStatusClass}">
+                <td></td>
+                <td class="subtopic-cell">${toSentenceCase(item.sub)}</td>
+                <td class="week-cell">${item.estimatedWeek}</td>
+                <td class="difficulty-cell ${diffClass}">${item.difficulty}</td>
+                <td class="select-cell-wrapper">
+                  <div class="select-cell">
+                    <input type="checkbox" data-role="sub-toggle" data-main="${group.main}" data-sub="${item.sub}" ${checked ? 'checked' : ''} />
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+          return mainRow + subRows;
         }).join('');
       } else {
         const mainRows = Object.entries(groups).map(([main, entries]) => {
