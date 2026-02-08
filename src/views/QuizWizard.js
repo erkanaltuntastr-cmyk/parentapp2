@@ -1,4 +1,4 @@
-import { getActiveChild } from '../usecases/children.js';
+import { getActiveChild, getCurriculumSelection } from '../usecases/children.js';
 import { listSubjects } from '../usecases/subjects.js';
 import { getTopics, loadCurriculum } from '../usecases/curriculum.js';
 import { getMockTopics } from '../usecases/mockCurriculum.js';
@@ -28,7 +28,8 @@ export function QuizWizard(){
   let preset = 'weekly';
   let subject = subjectParam ? decodeURIComponent(subjectParam) : '';
   let topics = [];
-  let availableTopics = [];
+  let selectedGroups = [];
+  let showTopics = true;
   let feedbackPanel = null;
   let activeDraft = null;
 
@@ -55,8 +56,8 @@ export function QuizWizard(){
 
   const buildTopicList = async () => {
     if (!subject) {
-      availableTopics = [];
       topics = [];
+      selectedGroups = [];
       renderTopics();
       return;
     }
@@ -65,42 +66,56 @@ export function QuizWizard(){
     if (!list.length) {
       list = await getMockTopics(child.year, subject);
     }
-    availableTopics = list.map(t => {
+
+    const selection = getCurriculumSelection(child.id, subject);
+    if (!selection || (!Object.keys(selection.main || {}).length && !Object.keys(selection.sub || {}).length)) {
+      topics = [];
+      selectedGroups = [];
+      renderTopics();
+      return;
+    }
+
+    const groupMap = new Map();
+    list.forEach(t => {
       const main = (t.mainTopic || t.subject || subject).trim();
       const sub = (t.subtopic || 'General').trim();
-      const label = sub ? `${main} - ${sub}` : main;
-      return { key: label, label };
+      const hasMain = Boolean(selection.main?.[main]);
+      const hasSub = Boolean(selection.sub?.[main]?.[sub]);
+      if (!hasMain && !hasSub) return;
+      if (!groupMap.has(main)) groupMap.set(main, new Set());
+      groupMap.get(main).add(sub);
     });
-    topics = unique(availableTopics.map(t => t.key));
+
+    selectedGroups = Array.from(groupMap.entries()).map(([main, subs]) => ({
+      main,
+      subs: Array.from(subs)
+    }));
+    topics = selectedGroups.flatMap(group => group.subs.map(sub => `${group.main} - ${sub}`));
     renderTopics();
   };
 
   const renderTopics = () => {
     const topicWrap = section.querySelector('[data-role="topic-list"]');
     if (!topicWrap) return;
-    if (!availableTopics.length) {
-      topicWrap.innerHTML = '<p class="help">No topics available. Try another subject.</p>';
+    if (!showTopics) {
+      topicWrap.innerHTML = '';
       return;
     }
-    topicWrap.innerHTML = `
-      ${availableTopics.map(item => `
-        <label class="topic-chip">
-          <input type="checkbox" ${topics.includes(item.key) ? 'checked' : ''} data-topic="${item.key}" />
-          <span>${item.label}</span>
-        </label>
-      `).join('')}
-    `;
-    topicWrap.querySelectorAll('input[type="checkbox"]').forEach(input => {
-      input.addEventListener('change', e => {
-        const key = e.target.getAttribute('data-topic');
-        if (!key) return;
-        if (e.target.checked) {
-          topics = unique([...topics, key]);
-        } else {
-          topics = topics.filter(t => t !== key);
-        }
-      });
-    });
+    if (!selectedGroups.length) {
+      topicWrap.innerHTML = `
+        <p class="help">No topics selected. Return to the subject page to choose topics.</p>
+        <a class="button-secondary" href="#/subject?subject=${encodeURIComponent(subject || '')}">Edit topics</a>
+      `;
+      return;
+    }
+    topicWrap.innerHTML = selectedGroups.map(group => `
+      <div class="topic-group">
+        <div class="topic-group-title">${group.main}</div>
+        <div class="topic-group-list">
+          ${group.subs.map(sub => `<span class="topic-chip is-readonly">${sub}</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
   };
 
   const buildConfig = () => {
@@ -337,7 +352,10 @@ export function QuizWizard(){
     <div class="topic-section">
       <div class="topic-head">
         <h2 class="h2">Topics</h2>
-        <button type="button" class="button-secondary" data-role="select-all">Select all</button>
+        <label class="check">
+          <input type="checkbox" data-role="toggle-topics" ${showTopics ? 'checked' : ''} />
+          Show selected topics
+        </label>
       </div>
       <div class="topic-list" data-role="topic-list"></div>
     </div>
@@ -380,8 +398,8 @@ export function QuizWizard(){
     renderTopics();
   }
 
-  section.querySelector('[data-role="select-all"]').addEventListener('click', () => {
-    topics = unique(availableTopics.map(t => t.key));
+  section.querySelector('[data-role="toggle-topics"]').addEventListener('change', e => {
+    showTopics = e.target.checked;
     renderTopics();
   });
 

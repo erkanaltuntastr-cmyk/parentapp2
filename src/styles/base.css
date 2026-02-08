@@ -685,6 +685,29 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   background: #fff;
   font-size: var(--fs-300);
 }
+.topic-chip.is-readonly{
+  background:#F8FAFC;
+  color: var(--ink-700);
+  border-style: dashed;
+}
+.topic-group{
+  flex: 1 1 100%;
+  border: 1px solid var(--border-200);
+  border-radius: 12px;
+  padding: 12px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+}
+.topic-group-title{
+  font-weight:700;
+}
+.topic-group-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap: var(--space-2);
+}
 .feedback-panel{
   display:none;
   margin-top: var(--space-4);
