@@ -21,9 +21,12 @@ export function QuizWizard(){
     return section;
   }
 
+  const params = new URLSearchParams(location.hash.split('?')[1] || '');
+  const subjectParam = params.get('subject') || '';
+
   let mode = 'automatic';
   let preset = 'weekly';
-  let subject = '';
+  let subject = subjectParam ? decodeURIComponent(subjectParam) : '';
   let topics = [];
   let availableTopics = [];
   let feedbackPanel = null;
@@ -242,21 +245,18 @@ export function QuizWizard(){
   const subjectOptions = listSubjects(child.id, { includePassive: true })
     .sort((a, b) => (a.active === b.active ? a.name.localeCompare(b.name) : a.active ? -1 : 1));
 
+  if (!subject && subjectOptions.length) {
+    subject = subjectOptions[0].name;
+  }
+
   section.innerHTML = `
     <h1 class="h1">Quiz Wizard</h1>
     <p class="subtitle">Configure quizzes with automatic presets or expert controls.</p>
 
     <div class="wizard-top">
       <div class="field">
-        <label for="wizardSubject">Subject</label>
-        <select id="wizardSubject">
-          <option value="">Select a subject</option>
-          ${subjectOptions.map(s => `<option value="${s.name}">${s.name}${s.active ? '' : ' (Passive)'}</option>`).join('')}
-        </select>
-      </div>
-      <div class="field">
-        <label for="wizardInstructions">Special Instructions</label>
-        <textarea id="wizardInstructions" rows="2" placeholder="Optional notes for the AI"></textarea>
+        <label>Subject</label>
+        <div class="static-field">${subject || 'Subject not set'}</div>
       </div>
     </div>
 
@@ -342,6 +342,11 @@ export function QuizWizard(){
       <div class="topic-list" data-role="topic-list"></div>
     </div>
 
+    <div class="field" style="margin-top: var(--space-3);">
+      <label for="wizardInstructions">Special Instructions</label>
+      <textarea id="wizardInstructions" rows="3" placeholder="Optional notes for the AI"></textarea>
+    </div>
+
     <div class="actions-row" style="margin-top: var(--space-3);">
       <button type="button" class="button" data-role="send-ai">Send to AI</button>
       <a class="button-secondary" href="#/family-hub">Back to Family Hub</a>
@@ -369,11 +374,11 @@ export function QuizWizard(){
     });
   });
 
-  const subjectSelect = section.querySelector('#wizardSubject');
-  subjectSelect.addEventListener('change', async () => {
-    subject = subjectSelect.value;
-    await buildTopicList();
-  });
+  if (subject) {
+    buildTopicList();
+  } else {
+    renderTopics();
+  }
 
   section.querySelector('[data-role="select-all"]').addEventListener('click', () => {
     topics = unique(availableTopics.map(t => t.key));

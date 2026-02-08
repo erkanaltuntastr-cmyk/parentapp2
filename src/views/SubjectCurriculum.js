@@ -100,7 +100,7 @@ export function SubjectCurriculum(){
     <p class="subtitle"></p>
     <div class="curriculum-body"></div>
     <div class="actions-row" style="margin-top: var(--space-4);">
-      <a class="button" href="#/quiz-wizard">Quiz Generator</a>
+      <a class="button" href="#/quiz-wizard?subject=${encodeURIComponent(subject || '')}">Quiz Generator</a>
       <a class="button-secondary" href="#/child-overview">Back to Student Overview</a>
     </div>
   `;

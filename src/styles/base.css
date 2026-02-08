@@ -614,6 +614,14 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space-3);
 }
+.static-field{
+  padding: 12px 14px;
+  border:1px solid var(--border-200);
+  border-radius: 12px;
+  background:#F8FAFC;
+  color: var(--ink-900);
+  font-weight:600;
+}
 .quiz-wizard .tab-btn{
   border: 1px solid var(--border-200);
   padding: 8px 14px;
