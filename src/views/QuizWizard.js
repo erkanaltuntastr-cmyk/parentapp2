@@ -111,7 +111,7 @@ export function QuizWizard(){
     topicWrap.innerHTML = selectedGroups.map(group => `
       <div class="topic-group">
         <div class="topic-group-title">${group.main}</div>
-        <div class="topic-group-list">
+        <div class="topic-subgrid">
           ${group.subs.map(sub => `<span class="topic-chip is-readonly">${sub}</span>`).join('')}
         </div>
       </div>
