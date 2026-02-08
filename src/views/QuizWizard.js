@@ -293,7 +293,6 @@ export function QuizWizard(){
 
     <div class="wizard-top">
       <div class="field">
-        <label>Subject</label>
         <div class="static-field">${subject || 'Subject not set'}</div>
       </div>
     </div>
