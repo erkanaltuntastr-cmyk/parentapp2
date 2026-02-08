@@ -15,13 +15,13 @@ export function FamilyHub(){
   const activeUser = getActiveUser();
   const familyName = getFamilyName() || state.parent?.surname || state.parent?.name || 'Family';
   const title = `${String(familyName).toUpperCase()} FAMILY HUB`;
-  const getInitials = name => String(name || '')
-    .split(' ')
-    .filter(Boolean)
-    .map(p => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || 'P';
+  const personIcon = `
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <circle cx="32" cy="20" r="11" fill="currentColor"/>
+      <rect x="18" y="34" width="28" height="18" rx="9" fill="currentColor" opacity="0.85"/>
+      <rect x="22" y="38" width="20" height="10" rx="5" fill="currentColor" opacity="0.6"/>
+    </svg>
+  `;
 
   section.innerHTML = `
     <h1 class="h1">${title}</h1>
@@ -39,7 +39,6 @@ export function FamilyHub(){
     parentsSection.innerHTML = `
       <div class="family-section-head">
         <h2 class="h2">Parents</h2>
-        <button type="button" class="button-secondary" data-role="add-parent">Invite Parent</button>
       </div>
       <div class="family-list" data-role="parents-list"></div>
     `;
@@ -56,34 +55,51 @@ export function FamilyHub(){
         name: primaryName,
         relation: 'Primary Parent',
         meta: primaryMeta,
-        isAdmin: Boolean(activeUser?.isAdmin)
+        tone: 'gold'
       },
       ...listFamilyMembers().map(m => ({
         id: m.id,
         name: m.name,
         relation: m.relation || 'Parent',
         meta: m.addedAt ? `Invited ${new Date(m.addedAt).toLocaleDateString('en-GB')}` : '',
-        isAdmin: false
+        tone: 'orange'
       }))
     ];
-    parentsList.innerHTML = parentCards.map(card => `
+    const parentMarkup = parentCards.map(card => `
       <div class="family-card">
         <div class="family-person-head">
-          <div class="family-avatar ${card.isAdmin ? 'gold' : 'orange'}">${getInitials(card.name)}</div>
+          <div class="family-avatar ${card.tone}">${personIcon}</div>
           <div class="family-card-title">${card.name}</div>
         </div>
         <div class="help">${card.relation}</div>
         ${card.meta ? `<div class="help">${card.meta}</div>` : ''}
       </div>
-    `).join('') || '<p class="help">No parents listed yet.</p>';
+    `).join('');
+    const inviteMarkup = `
+      <div class="family-card is-clickable is-add" data-role="add-parent" role="button" tabindex="0">
+        <div class="family-person-head">
+          <div class="family-avatar neutral">+</div>
+          <div class="family-card-title">Invite Parent</div>
+        </div>
+        <div class="help">Add another family member.</div>
+      </div>
+    `;
+    parentsList.innerHTML = parentMarkup ? `${parentMarkup}${inviteMarkup}` : inviteMarkup;
 
-    parentsSection.querySelector('[data-role="add-parent"]').addEventListener('click', () => {
+    const addParent = () => {
       const name = prompt('Parent full name:');
       if (!name) return;
       const relation = prompt('Relation (e.g., Mother, Guardian, Grandparent):');
       addFamilyMember({ name, relation });
       render();
-    });
+    };
+    const addParentCard = parentsSection.querySelector('[data-role="add-parent"]');
+    if (addParentCard) {
+      addParentCard.addEventListener('click', addParent);
+      addParentCard.addEventListener('keydown', e => {
+        if (e.key === 'Enter') addParent();
+      });
+    }
 
     const teacherSection = document.createElement('div');
     teacherSection.className = 'family-section';
@@ -107,7 +123,7 @@ export function FamilyHub(){
       teachers = listTeachers();
     }
     const teacherList = teacherSection.querySelector('[data-role="teacher-list"]');
-    teacherList.innerHTML = teachers.length ? teachers.map(t => {
+    const teacherMarkup = teachers.length ? teachers.map(t => {
       const assigned = (t.childIds || []).map(id => {
         const child = children.find(c => c.id === id);
         return child?.name || 'Child';
@@ -116,7 +132,7 @@ export function FamilyHub(){
       return `
         <div class="family-card">
           <div class="family-person-head">
-            <div class="family-avatar green">${getInitials(t.name || 'T')}</div>
+            <div class="family-avatar green">${personIcon}</div>
             <div class="family-card-title">${t.name || 'Teacher'}</div>
           </div>
           <div class="help">${subject}${assigned.length ? ` for ${assigned.join(', ')}` : ''}</div>
@@ -124,6 +140,41 @@ export function FamilyHub(){
         </div>
       `;
     }).join('') : '<p class="help">No teachers linked yet.</p>';
+    const inviteTeacherMarkup = `
+      <div class="family-card is-clickable is-add" data-role="add-teacher" role="button" tabindex="0">
+        <div class="family-person-head">
+          <div class="family-avatar neutral">+</div>
+          <div class="family-card-title">Invite Teacher</div>
+        </div>
+        <div class="help">Add a new teacher contact.</div>
+      </div>
+    `;
+    teacherList.innerHTML = teachers.length ? `${teacherMarkup}${inviteTeacherMarkup}` : inviteTeacherMarkup;
+
+    const addTeacherCard = teacherSection.querySelector('[data-role="add-teacher"]');
+    if (addTeacherCard) {
+      const addTeacherPrompt = () => {
+        const name = prompt('Teacher name:');
+        if (!name) return;
+        const email = prompt('Teacher email (optional):') || '';
+        const subject = prompt('Subject (optional):') || '';
+        const assignRaw = prompt('Assign to which students? (comma-separated names, optional):') || '';
+        const assignNames = assignRaw
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+          .map(s => s.toLowerCase());
+        const childIds = assignNames.length
+          ? children.filter(c => assignNames.includes(String(c.name || '').toLowerCase())).map(c => c.id)
+          : [];
+        addTeacher({ name, email, childIds, subject });
+        render();
+      };
+      addTeacherCard.addEventListener('click', addTeacherPrompt);
+      addTeacherCard.addEventListener('keydown', e => {
+        if (e.key === 'Enter') addTeacherPrompt();
+      });
+    }
 
     const childSection = document.createElement('div');
     childSection.className = 'family-section';

@@ -39,40 +39,70 @@ function normaliseYear(year){
   return s.startsWith('Year') ? s : `Year ${s}`;
 }
 
-export async function loadCurriculum(){
-  if (cache) return cache;
+const CURRICULUM_SOURCES = [
+  new URL('../../data/England_National_Curriculum_Full_Detailed.csv', import.meta.url),
+  new URL('../data/England_National_Curriculum_Full_Detailed.csv', import.meta.url),
+  new URL('../data/England_National_Curriculum.csv', import.meta.url)
+];
+
+async function fetchCsvText(url){
   try {
-    const res = await fetch('src/data/England_National_Curriculum.csv');
-    if (!res.ok) return [];
-    const text = await res.text();
-    const lines = text.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n').filter(l => l.trim());
-    if (!lines.length) return [];
-    const rawHeader = lines[0].trim();
-    const headerLine = rawHeader.startsWith('"') && rawHeader.endsWith('"')
-      ? rawHeader.slice(1, -1)
-      : rawHeader;
-    const headers = parseCsvLine(headerLine).map(h => h.trim().toLowerCase());
-    const idx = {
-      year: headers.indexOf('year'),
-      subject: headers.indexOf('subject'),
-      main: headers.indexOf('main topic'),
-      sub: headers.indexOf('subtopic (statutory focus)'),
-      week: headers.indexOf('estimated week')
-    };
-    const rows = lines.slice(1).map(line => {
-      const raw = line.trim();
-      const inner = raw.startsWith('"') && raw.endsWith('"') ? raw.slice(1, -1) : raw;
-      const cols = parseCsvLine(inner);
-      return {
-        year: normaliseYear((cols[idx.year] || '').trim()),
-        subject: (cols[idx.subject] || '').trim(),
-        mainTopic: (cols[idx.main] || '').trim(),
-        subtopic: (cols[idx.sub] || '').trim(),
-        estimatedWeek: (cols[idx.week] || '').trim()
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return '';
+    return await res.text();
+  } catch {
+    return '';
+  }
+}
+
+export async function loadCurriculum(){
+  if (Array.isArray(cache) && cache.length) return cache;
+  if (Array.isArray(cache) && cache.length === 0) {
+    cache = null;
+  }
+  try {
+    for (const source of CURRICULUM_SOURCES) {
+      const text = await fetchCsvText(source);
+      if (!text) continue;
+      const cleaned = text.replace(/^\uFEFF/, '');
+      const lines = cleaned.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n').filter(l => l.trim());
+      if (!lines.length) continue;
+      const rawHeader = lines[0].trim();
+      const headerLine = rawHeader.startsWith('"') && rawHeader.endsWith('"')
+        ? rawHeader.slice(1, -1)
+        : rawHeader;
+      const headers = parseCsvLine(headerLine).map(h => h.trim().toLowerCase());
+      if (headers.length) headers[0] = headers[0].replace(/^\uFEFF/, '');
+      const idx = {
+        year: headers.indexOf('year'),
+        subject: headers.indexOf('subject'),
+        main: headers.indexOf('main topic'),
+        sub: headers.indexOf('subtopic (statutory focus)'),
+        week: headers.indexOf('estimated week')
       };
-    }).filter(r => r.year && r.subject);
-    cache = rows;
-    return rows;
+      const yearIdx = idx.year >= 0 ? idx.year : 0;
+      const subjectIdx = idx.subject >= 0 ? idx.subject : 1;
+      const mainIdx = idx.main >= 0 ? idx.main : 2;
+      const subIdx = idx.sub >= 0 ? idx.sub : 3;
+      const weekIdx = idx.week >= 0 ? idx.week : 4;
+      const rows = lines.slice(1).map(line => {
+        const raw = line.trim();
+        const inner = raw.startsWith('"') && raw.endsWith('"') ? raw.slice(1, -1) : raw;
+        const cols = parseCsvLine(inner);
+        return {
+          year: normaliseYear((cols[yearIdx] || '').trim()),
+          subject: (cols[subjectIdx] || '').trim(),
+          mainTopic: (cols[mainIdx] || '').trim(),
+          subtopic: (cols[subIdx] || '').trim(),
+          estimatedWeek: (cols[weekIdx] || '').trim()
+        };
+      }).filter(r => r.year && r.subject);
+      if (rows.length) {
+        cache = rows;
+        return rows;
+      }
+    }
+    return [];
   } catch {
     return [];
   }

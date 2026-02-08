@@ -1,7 +1,6 @@
 import { Welcome } from './views/Welcome.js';
 import { AddChild } from './views/AddChild.js';
 import { ChildOverview } from './views/ChildOverview.js';
-import { SubjectCurriculum } from './views/SubjectCurriculum.js';
 import { SignIn } from './views/SignIn.js';
 import { Register } from './views/Register.js';
 import { Settings } from './views/Settings.js';
@@ -33,7 +32,6 @@ const routes = {
   '#/welcome': Welcome,
   '#/add-child': AddChild,
   '#/child-overview': ChildOverview,
-  '#/subjects': SubjectCurriculum,
   '#/select-child': SelectChild,
   '#/signin': SignIn,
   '#/register': Register,
@@ -97,7 +95,7 @@ async function guardChildSelected(route){
   const state = getState();
   const children = state.children || [];
   const activeValid = state.activeChildId && children.some(c => c.id === state.activeChildId);
-  const needsChild = ['#/child-overview', '#/subjects', '#/quiz-wizard', '#/manual-quiz'];
+  const needsChild = ['#/child-overview', '#/quiz-wizard', '#/manual-quiz'];
   const target = children.length ? '#/family-hub' : '#/add-child';
   if (route === '#/welcome' && !activeValid) {
     return { redirect: target };
@@ -140,6 +138,10 @@ export async function router(){
 
   // Choose route
   const key = location.hash || '#/welcome';
+  if (key === '#/subjects') {
+    location.hash = '#/child-overview';
+    return;
+  }
   renderHeader(key);
 
   // Run guards

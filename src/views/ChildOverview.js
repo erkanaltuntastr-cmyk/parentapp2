@@ -1,12 +1,12 @@
 import { getActiveChild, deleteChild, updateChildGroupName } from '../usecases/children.js';
-import { listSubjects, setSubjectActive } from '../usecases/subjects.js';
+import { addSubject, listSubjects, setSubjectActive } from '../usecases/subjects.js';
 import { getState } from '../state/appState.js';
 import { getIconById } from '../utils/icons.js';
 import { getTeachersForChild } from '../usecases/teachers.js';
-import { getActiveUser } from '../usecases/auth.js';
 import { listFamilyMembers } from '../usecases/familyMembers.js';
 import { getActiveUser, ADMIN_USERNAME } from '../usecases/auth.js';
 import { sendMessage } from '../usecases/messages.js';
+import { getAvailableSubjects } from '../usecases/curriculum.js';
 
 function scoreColor(score){
   if (score === null || score === undefined) return '#E2E8F0';
@@ -22,6 +22,20 @@ function scoreColor(score){
 export function ChildOverview(){
   const section = document.createElement('section');
   section.className = 'card';
+  const personIcon = `
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <circle cx="32" cy="20" r="11" fill="currentColor"/>
+      <rect x="18" y="34" width="28" height="18" rx="9" fill="currentColor" opacity="0.85"/>
+      <rect x="22" y="38" width="20" height="10" rx="5" fill="currentColor" opacity="0.6"/>
+    </svg>
+  `;
+  const infoIcon = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <line x1="12" y1="10" x2="12" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="12" cy="7" r="1.2" fill="currentColor"/>
+    </svg>
+  `;
 
   const child = getActiveChild();
   if (!child) {
@@ -37,16 +51,7 @@ export function ChildOverview(){
 
   const title = name || 'Your child';
   const metaLine = `${school || 'School not set'} | Year ${year || '-'} | `;
-  const teachers = getTeachersForChild(child.id);
   const activeUser = getActiveUser();
-  const parentNames = [];
-  const primaryParent = getState().parent?.name
-    ? `${getState().parent.name} ${getState().parent.surname || ''}`.trim()
-    : (activeUser?.username || 'Parent');
-  if (primaryParent) parentNames.push(primaryParent);
-  listFamilyMembers().forEach(m => {
-    if (m.name && !parentNames.includes(m.name)) parentNames.push(m.name);
-  });
 
   section.innerHTML = `
     <div class="child-identity">
@@ -68,22 +73,9 @@ export function ChildOverview(){
         </div>
       </div>
     </div>
-    <div class="people-strip">
-      <div class="people-title">Parents</div>
-      <div class="people-chips">
-        ${parentNames.length ? parentNames.map(p => `<span class="people-chip people-chip-orange">${p}</span>`).join('') : '<span class="help">No parents listed.</span>'}
-      </div>
-    </div>
-    <div class="people-strip">
-      <div class="people-title">Teachers</div>
-      <div class="people-chips">
-        ${teachers.length ? teachers.map(t => `<span class="people-chip people-chip-green">${t.name || 'Teacher'}</span>`).join('') : '<span class="help">No teachers linked yet.</span>'}
-      </div>
-    </div>
     <div class="overview-body"></div>
     <div class="actions" style="margin-top: var(--space-4);">
-      <a class="button" href="#/subjects">View subjects</a>
-      <div style="margin-top: var(--space-2);">
+      <div>
         <button type="button" class="button-secondary" data-role="suggest-subject">Suggest New Subject</button>
       </div>
       <div style="margin-top: var(--space-2);">
@@ -145,61 +137,139 @@ export function ChildOverview(){
   const assignments = getState().assignments || [];
   const quizSessions = (getState().quizSessions || []).filter(s => s.childId === child.id && s.status === 'completed');
 
-  const renderSubjects = () => {
+  const renderSections = async () => {
     body.innerHTML = '';
-    const subjects = listSubjects(child.id);
-    const sorted = [...subjects].sort((a, b) => {
-      if (a.active === b.active) return a.name.localeCompare(b.name);
-      return a.active ? -1 : 1;
-    });
+    const teachers = getTeachersForChild(child.id);
+    const primaryName = getState().parent?.name
+      ? `${getState().parent.name} ${getState().parent.surname || ''}`.trim()
+      : (activeUser?.username || 'Parent');
+    const primaryMeta = activeUser?.username || '';
+    const parentCards = [
+      {
+        id: 'primary',
+        name: primaryName,
+        relation: 'Primary Parent',
+        meta: primaryMeta,
+        tone: 'gold'
+      },
+      ...listFamilyMembers().map(m => ({
+        id: m.id,
+        name: m.name,
+        relation: m.relation || 'Parent',
+        meta: m.addedAt ? `Invited ${new Date(m.addedAt).toLocaleDateString('en-GB')}` : '',
+        tone: 'orange'
+      }))
+    ];
 
-    const cards = document.createElement('div');
-    cards.className = 'overview-grid';
-    if (!sorted.length) {
-      const empty = document.createElement('div');
-      empty.className = 'empty-state';
-      empty.innerHTML = '<p class="subtitle">No subjects yet.</p>';
-      body.appendChild(empty);
+    const parentsSection = document.createElement('div');
+    parentsSection.className = 'family-section';
+    parentsSection.innerHTML = `
+      <div class="family-section-head">
+        <h2 class="h2">Parents</h2>
+      </div>
+      <div class="family-list" data-role="parents-list"></div>
+    `;
+    const parentsList = parentsSection.querySelector('[data-role="parents-list"]');
+    parentsList.innerHTML = parentCards.length ? parentCards.map(card => `
+      <div class="family-card">
+        <div class="family-person-head">
+          <div class="family-avatar ${card.tone}">${personIcon}</div>
+          <div class="family-card-title">${card.name}</div>
+        </div>
+        <div class="help">${card.relation}</div>
+        ${card.meta ? `<div class="help">${card.meta}</div>` : ''}
+      </div>
+    `).join('') : '<p class="help">No parents listed yet.</p>';
+    body.appendChild(parentsSection);
+
+    const teacherSection = document.createElement('div');
+    teacherSection.className = 'family-section';
+    teacherSection.innerHTML = `
+      <div class="family-section-head">
+        <h2 class="h2">Teachers</h2>
+      </div>
+      <div class="family-list" data-role="teacher-list"></div>
+    `;
+    const teacherList = teacherSection.querySelector('[data-role="teacher-list"]');
+    teacherList.innerHTML = teachers.length ? teachers.map(t => {
+      const subject = t.subject || 'Teacher';
+      return `
+        <div class="family-card">
+          <div class="family-person-head">
+            <div class="family-avatar green">${personIcon}</div>
+            <div class="family-card-title">${t.name || 'Teacher'}</div>
+          </div>
+          <div class="help">${subject}</div>
+          ${t.email ? `<div class="help">${t.email}</div>` : ''}
+        </div>
+      `;
+    }).join('') : '<p class="help">No teachers linked yet.</p>';
+    body.appendChild(teacherSection);
+
+    const subjectSection = document.createElement('div');
+    subjectSection.className = 'family-section';
+    subjectSection.innerHTML = `
+      <div class="family-section-head">
+        <h2 class="h2">Lessons</h2>
+      </div>
+      <div class="family-list" data-role="subject-list"></div>
+    `;
+    const subjectList = subjectSection.querySelector('[data-role="subject-list"]');
+    subjectList.innerHTML = '<p class="help">Loading lessons...</p>';
+    body.appendChild(subjectSection);
+
+    const available = await getAvailableSubjects(child.year);
+    const stored = listSubjects(child.id);
+    const storedMap = new Map(stored.map(s => [s.name.toLowerCase(), s]));
+    const sortedNames = [...available].sort((a, b) => a.localeCompare(b));
+
+    if (!sortedNames.length) {
+      subjectList.innerHTML = '<p class="help">No lessons found for this year in the curriculum file.</p>';
       return;
     }
 
-    sorted.forEach((subject, idx) => {
+    subjectList.innerHTML = sortedNames.map(name => {
+      const key = String(name || '').toLowerCase();
+      const entry = storedMap.get(key);
+      const isActive = entry ? entry.active : false;
       const scores = assignments
-        .filter(a => a.childId === child.id && a.subject === subject.name && typeof a.score === 'number')
+        .filter(a => a.childId === child.id && a.subject === name && typeof a.score === 'number')
         .map(a => a.score);
       quizSessions
-        .filter(s => s.subject === subject.name && typeof s.score === 'number')
+        .filter(s => s.subject === name && typeof s.score === 'number')
         .forEach(s => scores.push(s.score));
       const best = scores.length ? Math.max(...scores) : null;
       const color = scoreColor(best);
-      const card = document.createElement('div');
-      card.className = `overview-card${subject.active ? '' : ' is-passive'}`;
-      card.style.borderLeft = `4px solid ${color}`;
-      card.innerHTML = `
-        <div class="overview-card-head">
-          <span>${subject.name}</span>
-          <span class="score-badge" style="background:${color}">${best === null ? 'No data' : `${best}%`}</span>
+      return `
+        <div class="family-card${isActive ? '' : ' is-passive'}" style="border-left:4px solid ${color}">
+          <div class="family-person-head">
+            <div class="family-avatar info">${infoIcon}</div>
+            <div class="family-card-title">${name}</div>
+          </div>
+          <div class="help">Best score: ${best === null ? 'No data' : `${best}%`}</div>
+          <label class="subject-toggle">
+            <span>${isActive ? 'Active' : 'Passive'}</span>
+            <input type="checkbox" data-subject="${name}" ${isActive ? 'checked' : ''} aria-label="Toggle subject active status" />
+          </label>
         </div>
-        <div class="help">Best score</div>
-        <label class="subject-toggle">
-          <span>${subject.active ? 'Active' : 'Passive'}</span>
-          <input type="checkbox" ${subject.active ? 'checked' : ''} aria-label="Toggle subject active status" />
-        </label>
       `;
-      card.querySelector('input[type="checkbox"]').addEventListener('change', e => {
-        setSubjectActive(child.id, subject.name, e.target.checked);
-        renderSubjects();
+    }).join('');
+
+    subjectList.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      input.addEventListener('change', e => {
+        const subjectName = e.target.getAttribute('data-subject') || '';
+        if (!subjectName) return;
+        if (e.target.checked) {
+          addSubject(child.id, subjectName, true);
+        } else {
+          setSubjectActive(child.id, subjectName, false);
+        }
+        renderSections();
       });
-      cards.appendChild(card);
     });
-    if (sorted.length % 2 === 1) {
-      const last = cards.lastElementChild;
-      if (last) last.classList.add('is-single');
-    }
-    body.appendChild(cards);
   };
 
-  renderSubjects();
+  renderSections();
 
   section.querySelector('[data-role="edit-child"]').addEventListener('click', () => {
     alert('Edit child is coming next.');

@@ -1,4 +1,5 @@
 import { getState, saveState } from '../state/appState.js';
+import { getAvailableSubjects } from './curriculum.js';
 
 function normalizeSubjectEntry(entry){
   if (!entry || typeof entry !== 'object') {
@@ -81,4 +82,35 @@ export function setSubjectActive(childId, name, active){
     return { ...c, subjects };
   });
   saveState({ ...state, children: nextChildren });
+}
+
+export async function ensureSubjectsForYear(childId, year, opts = {}){
+  if (!childId) return { added: 0, subjects: [] };
+  const available = await getAvailableSubjects(year);
+  if (!available.length) return { added: 0, subjects: [] };
+  const state = getState();
+  let added = 0;
+  const nextChildren = state.children.map(c => {
+    if (c.id !== childId) return c;
+    const subjects = getChildSubjects(c);
+    const existing = new Set(subjects.map(s => s.name.toLowerCase()));
+    available.forEach(subject => {
+      const name = String(subject || '').trim();
+      if (!name) return;
+      const key = name.toLowerCase();
+      if (existing.has(key)) return;
+      subjects.push({
+        name,
+        active: typeof opts.active === 'boolean' ? opts.active : true,
+        addedAt: new Date().toISOString()
+      });
+      existing.add(key);
+      added += 1;
+    });
+    return added ? { ...c, subjects } : c;
+  });
+  if (added) {
+    saveState({ ...state, children: nextChildren });
+  }
+  return { added, subjects: available };
 }
