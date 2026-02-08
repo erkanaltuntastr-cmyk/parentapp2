@@ -1,275 +1,334 @@
 import { getActiveChild, getCurriculumSelection, setCurriculumSelection } from '../usecases/children.js';
-import { addSubject, listSubjectNames } from '../usecases/subjects.js';
 import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/curriculum.js';
-import { getState } from '../state/appState.js';
-import { getCurrentSchoolWeek, parseEstimatedWeek } from '../utils/schoolWeek.js';
-
-const SAMPLE_SUBJECTS = [
-  'English',
-  'Mathematics',
-  'Science',
-  'History',
-  'Geography',
-  'Art and Design',
-  'Physical Education'
-];
+import { parseEstimatedWeek, getCurrentYearWeek } from '../utils/schoolWeek.js';
 
 function normaliseSelection(raw){
   return {
     main: raw?.main ? { ...raw.main } : {},
-    sub: raw?.sub ? { ...raw.sub } : {}
+    sub: raw?.sub ? Object.fromEntries(Object.entries(raw.sub).map(([k, v]) => [k, { ...v }])) : {}
   };
+}
+
+function hasSelection(selection){
+  if (!selection) return false;
+  const hasMain = Object.values(selection.main || {}).some(Boolean);
+  const hasSub = Object.values(selection.sub || {}).some(map => Object.values(map || {}).some(Boolean));
+  return hasMain || hasSub;
 }
 
 function unique(list){
   return Array.from(new Set(list.filter(Boolean)));
 }
 
+function buildGroups(rows){
+  const groups = {};
+  rows.forEach(row => {
+    const main = (row.mainTopic || row.subject || 'General').trim();
+    if (!main) return;
+    const sub = (row.subtopic || 'General').trim();
+    if (!groups[main]) groups[main] = [];
+    groups[main].push({
+      sub,
+      estimatedWeek: row.estimatedWeek || '',
+      difficulty: row.difficulty || ''
+    });
+  });
+  return groups;
+}
+
+function buildAutoSelection(groups, currentWeek){
+  const next = { main: {}, sub: {} };
+  Object.entries(groups).forEach(([main, entries]) => {
+    entries.forEach(entry => {
+      const sub = entry.sub || 'General';
+      const week = parseEstimatedWeek(entry.estimatedWeek);
+      if (week && week <= currentWeek) {
+        if (!next.sub[main]) next.sub[main] = {};
+        next.sub[main][sub] = true;
+      }
+    });
+  });
+  Object.entries(groups).forEach(([main, entries]) => {
+    const subs = unique(entries.map(e => e.sub || 'General'));
+    if (!subs.length) return;
+    const allSelected = subs.every(s => next.sub?.[main]?.[s]);
+    next.main[main] = allSelected;
+  });
+  return next;
+}
+
+function syncMainSelection(selection, groups){
+  const next = normaliseSelection(selection);
+  Object.entries(groups).forEach(([main, entries]) => {
+    const subs = unique(entries.map(e => e.sub || 'General'));
+    if (!subs.length) return;
+    const allSelected = subs.every(s => next.sub?.[main]?.[s]);
+    next.main[main] = allSelected;
+  });
+  return next;
+}
+
 export function SubjectCurriculum(){
   const section = document.createElement('section');
   section.className = 'card';
 
-  let child = getActiveChild();
+  const child = getActiveChild();
   if (!child) {
     location.hash = '#/add-child';
     return section;
   }
 
+  const params = new URLSearchParams(location.hash.split('?')[1] || '');
+  const subjectParam = params.get('subject') || params.get('name') || '';
+  let subject = subjectParam || '';
+  const year = child.year;
+  const weekInfo = getCurrentYearWeek();
+
   section.innerHTML = `
     <h1 class="h1"></h1>
-    <p class="subtitle">Select a subject to view topics for the current school week.</p>
+    <p class="subtitle"></p>
     <div class="curriculum-body"></div>
-    <div class="actions" style="margin-top: var(--space-4);">
-      <a class="button-secondary" href="#/child-overview">Back to overview</a>
-      <div style="margin-top: var(--space-1);">
-        <a class="button-secondary" href="#/select-child">Family Tree</a>
-      </div>
+    <div class="actions-row" style="margin-top: var(--space-4);">
+      <a class="button-secondary" href="#/child-overview">Back to Student Overview</a>
     </div>
   `;
 
-  const body = section.querySelector('.curriculum-body');
   const titleEl = section.querySelector('.h1');
-  const setTitle = current => {
-    const name = (current?.name || '').trim();
-    titleEl.textContent = name ? `${name} - curriculum` : 'Your student - curriculum';
-  };
-  setTitle(child);
+  const subtitleEl = section.querySelector('.subtitle');
+  const body = section.querySelector('.curriculum-body');
 
-  let year = child.year;
-  let available = [];
-  let selected = '';
-  let topics = [];
-  let isSample = false;
-  const expanded = new Set();
-
-  const render = () => {
-    body.innerHTML = '';
-    const currentWeek = getCurrentSchoolWeek();
-
-    const weekBar = document.createElement('div');
-    weekBar.className = 'week-banner';
-    weekBar.innerHTML = `
-      <div class="help">Current school week</div>
-      <div class="week-number">Week ${currentWeek}</div>
+  const renderSubjectPicker = async () => {
+    body.innerHTML = '<p class="subtitle">Loading subjects...</p>';
+    await loadCurriculum();
+    const subjects = await getAvailableSubjects(year);
+    if (!subjects.length) {
+      body.innerHTML = '<p class="help">No subjects found for this year.</p>';
+      return;
+    }
+    body.innerHTML = `
+      <div class="week-banner">
+        <div class="help">Current week (${weekInfo.year})</div>
+        <div class="week-number">Week ${weekInfo.week}</div>
+      </div>
+      <div class="subject-boxes"></div>
     `;
-    body.appendChild(weekBar);
-
-    const boxWrap = document.createElement('div');
-    boxWrap.className = 'subject-boxes';
-    available.forEach(sub => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = `subject-box${sub === selected ? ' is-selected' : ''}`;
-      btn.textContent = sub;
-      btn.addEventListener('click', async () => {
-        selected = sub;
-        topics = await getTopics(year, sub);
-        render();
+    const wrap = body.querySelector('.subject-boxes');
+    wrap.innerHTML = subjects
+      .sort((a, b) => a.localeCompare(b))
+      .map(name => `<button type="button" class="subject-box" data-subject="${name}">${name}</button>`)
+      .join('');
+    wrap.querySelectorAll('[data-subject]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const next = btn.getAttribute('data-subject');
+        if (!next) return;
+        location.hash = `#/subject?subject=${encodeURIComponent(next)}`;
       });
-      boxWrap.appendChild(btn);
     });
-    body.appendChild(boxWrap);
+  };
 
-    if (isSample) {
-      const banner = document.createElement('div');
-      banner.className = 'empty-state';
-      banner.innerHTML = `
-        <p class="subtitle">Curriculum for this year is coming soon.</p>
-        <a class="button-secondary" href="#/messages">Contact Support</a>
-      `;
-      body.appendChild(banner);
+  const renderSubjectPage = async () => {
+    body.innerHTML = '<p class="subtitle">Loading curriculum...</p>';
+
+    await loadCurriculum();
+    const rows = await getTopics(year, subject);
+    if (!rows.length) {
+      body.innerHTML = '<p class="help">No topics found for this subject and year.</p>';
+      return;
     }
 
-    if (!selected) return;
+    const groups = buildGroups(rows);
+    let selection = normaliseSelection(getCurriculumSelection(child.id, subject));
+    if (!hasSelection(selection)) {
+      selection = buildAutoSelection(groups, weekInfo.week);
+      setCurriculumSelection(child.id, subject, selection);
+    } else {
+      selection = syncMainSelection(selection, groups);
+    }
 
-    const added = listSubjectNames(child.id);
-    const addBtn = document.createElement('button');
-    addBtn.type = 'button';
-    addBtn.className = 'button';
-    addBtn.textContent = added.includes(selected) ? 'Subject Added' : 'Add Subject';
-    addBtn.disabled = added.includes(selected);
-    addBtn.addEventListener('click', () => {
-      addSubject(child.id, selected);
-      render();
-    });
-    body.appendChild(addBtn);
+    let showSubtopics = true;
 
-    const detailHead = document.createElement('div');
-    detailHead.className = 'subject-detail-head';
-    detailHead.innerHTML = `
-      <h2 class="h2">${selected}</h2>
-      <button type="button" class="button-secondary" data-role="select-all">Select Topics for Exam</button>
-    `;
-    body.appendChild(detailHead);
+    const render = () => {
+      body.innerHTML = `
+        <div class="week-banner">
+          <div class="help">Current week (${weekInfo.year})</div>
+          <div class="week-number">Week ${weekInfo.week}</div>
+        </div>
+        <div class="curriculum-toolbar">
+          <label class="check curriculum-toggle">
+            <input type="checkbox" data-role="toggle-subtopics" ${showSubtopics ? 'checked' : ''} />
+            Show subtopics
+          </label>
+          <div class="actions-row" style="margin-top: 0;">
+            <button type="button" class="button-secondary" data-role="select-all">Select all</button>
+            <button type="button" class="button-secondary" data-role="clear-all">Clear all</button>
+          </div>
+        </div>
+        <div class="curriculum-table-wrap"></div>
+      `;
 
-    const selection = normaliseSelection(getCurriculumSelection(child.id, selected));
-    const groups = {};
-    topics.forEach(t => {
-      const main = (t.mainTopic || t.subject || '').trim();
-      if (!main) return;
-      const sub = (t.subtopic || '').trim();
-      if (!groups[main]) groups[main] = [];
-      groups[main].push({ sub, estimatedWeek: t.estimatedWeek || '' });
-    });
+      const tableWrap = body.querySelector('.curriculum-table-wrap');
+      if (!Object.keys(groups).length) {
+        tableWrap.innerHTML = '<p class="help">No topics available.</p>';
+        return;
+      }
 
-    const list = document.createElement('div');
-    list.className = 'curriculum-list';
+      let rowsMarkup = '';
+      if (showSubtopics) {
+        const flatRows = [];
+        Object.entries(groups).forEach(([main, entries]) => {
+          entries.forEach(entry => {
+            flatRows.push({
+              main,
+              sub: entry.sub || 'General',
+              estimatedWeek: entry.estimatedWeek || '-',
+              difficulty: entry.difficulty || '-',
+              weekValue: parseEstimatedWeek(entry.estimatedWeek)
+            });
+          });
+        });
+        flatRows.sort((a, b) => {
+          const main = a.main.localeCompare(b.main);
+          if (main !== 0) return main;
+          const wa = a.weekValue || 999;
+          const wb = b.weekValue || 999;
+          if (wa !== wb) return wa - wb;
+          return a.sub.localeCompare(b.sub);
+        });
+        rowsMarkup = flatRows.map(item => {
+          const checked = Boolean(selection.sub?.[item.main]?.[item.sub]);
+          const weekValue = item.weekValue;
+          const statusClass = weekValue ? (weekValue <= weekInfo.week ? ' is-complete' : ' is-future') : '';
+          return `
+            <tr class="curriculum-row${statusClass}">
+              <td>${item.main}</td>
+              <td>${item.sub}</td>
+              <td>${item.estimatedWeek || '-'}</td>
+              <td>${item.difficulty || '-'}</td>
+              <td>
+                <input type="checkbox" data-role="sub-toggle" data-main="${item.main}" data-sub="${item.sub}" ${checked ? 'checked' : ''} />
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        const mainRows = Object.entries(groups).map(([main, entries]) => {
+          const subs = unique(entries.map(e => e.sub || 'General'));
+          const weeks = entries.map(e => parseEstimatedWeek(e.estimatedWeek)).filter(Boolean);
+          const weekLabel = weeks.length ? (Math.min(...weeks) === Math.max(...weeks)
+            ? `${Math.min(...weeks)}`
+            : `${Math.min(...weeks)}-${Math.max(...weeks)}`) : '-';
+          const diffs = entries.map(e => Number(e.difficulty)).filter(n => Number.isFinite(n));
+          const diffLabel = diffs.length ? (Math.min(...diffs) === Math.max(...diffs)
+            ? `${Math.min(...diffs)}`
+            : `${Math.min(...diffs)}-${Math.max(...diffs)}`) : '-';
+          const checked = Boolean(selection.main?.[main]);
+          return {
+            main,
+            subCount: subs.length,
+            weekLabel,
+            diffLabel,
+            checked,
+            weekValue: weeks.length ? Math.min(...weeks) : null
+          };
+        }).sort((a, b) => a.main.localeCompare(b.main));
+        rowsMarkup = mainRows.map(item => {
+          const statusClass = item.weekValue ? (item.weekValue <= weekInfo.week ? ' is-complete' : ' is-future') : '';
+          return `
+            <tr class="curriculum-row${statusClass}">
+              <td>${item.main}</td>
+              <td>${item.subCount} subtopics</td>
+              <td>${item.weekLabel}</td>
+              <td>${item.diffLabel}</td>
+              <td>
+                <input type="checkbox" data-role="main-toggle" data-main="${item.main}" ${item.checked ? 'checked' : ''} />
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
 
-    const updateSelection = next => {
-      setCurriculumSelection(child.id, selected, next);
+      tableWrap.innerHTML = `
+        <table class="curriculum-table">
+          <thead>
+            <tr>
+              <th>Main Topic</th>
+              <th>${showSubtopics ? 'Subtopic' : 'Subtopics'}</th>
+              <th>Estimated Week</th>
+              <th>Difficulty</th>
+              <th>Select</th>
+            </tr>
+          </thead>
+          <tbody>${rowsMarkup}</tbody>
+        </table>
+      `;
+
+      const toggle = body.querySelector('[data-role="toggle-subtopics"]');
+      toggle.addEventListener('change', () => {
+        showSubtopics = toggle.checked;
+        render();
+      });
+
+      body.querySelector('[data-role="select-all"]').addEventListener('click', () => {
+        const next = { main: {}, sub: {} };
+        Object.entries(groups).forEach(([main, entries]) => {
+          const subs = unique(entries.map(e => e.sub || 'General'));
+          if (!next.sub[main]) next.sub[main] = {};
+          subs.forEach(sub => { next.sub[main][sub] = true; });
+          next.main[main] = true;
+        });
+        selection = next;
+        setCurriculumSelection(child.id, subject, selection);
+        render();
+      });
+
+      body.querySelector('[data-role="clear-all"]').addEventListener('click', () => {
+        selection = { main: {}, sub: {} };
+        setCurriculumSelection(child.id, subject, selection);
+        render();
+      });
+
+      tableWrap.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.addEventListener('change', e => {
+          const role = e.target.getAttribute('data-role');
+          const main = e.target.getAttribute('data-main');
+          const sub = e.target.getAttribute('data-sub');
+          if (!main) return;
+          const next = normaliseSelection(selection);
+          const entries = groups[main] || [];
+          const subs = unique(entries.map(entry => entry.sub || 'General'));
+
+          if (role === 'main-toggle') {
+            if (!next.sub[main]) next.sub[main] = {};
+            subs.forEach(s => { next.sub[main][s] = e.target.checked; });
+            next.main[main] = e.target.checked;
+          }
+
+          if (role === 'sub-toggle' && sub) {
+            if (!next.sub[main]) next.sub[main] = {};
+            next.sub[main][sub] = e.target.checked;
+            const allSelected = subs.length ? subs.every(s => next.sub?.[main]?.[s]) : e.target.checked;
+            next.main[main] = allSelected;
+          }
+
+          selection = next;
+          setCurriculumSelection(child.id, subject, selection);
+          render();
+        });
+      });
     };
 
-    Object.entries(groups).forEach(([main, entries]) => {
-      const subtopics = unique(entries.map(e => e.sub || 'General'));
-      const weekMap = {};
-      entries.forEach(entry => {
-        const label = entry.sub || 'General';
-        if (!weekMap[label]) weekMap[label] = entry.estimatedWeek || '';
-      });
-      const mainWeek = entries.map(e => parseEstimatedWeek(e.estimatedWeek)).filter(Boolean);
-      const mainWeekLabel = mainWeek.length ? `Expected Week: ${Math.min(...mainWeek)}` : '';
-      const mainSelected = subtopics.length
-        ? subtopics.every(s => selection.sub?.[main]?.[s])
-        : Boolean(selection.main?.[main]);
-
-      const row = document.createElement('div');
-      row.className = 'topic-main';
-      row.innerHTML = `
-        <div class="topic-main-row">
-          <label class="check">
-            <input type="checkbox" ${mainSelected ? 'checked' : ''} />
-            <span>${main}</span>
-          </label>
-          <button type="button" class="expand-btn" aria-label="Toggle subtopics">+</button>
-        </div>
-        ${mainWeekLabel ? `<div class="help expected-week">${mainWeekLabel}</div>` : ''}
-      `;
-
-      const mainCheck = row.querySelector('input[type="checkbox"]');
-      mainCheck.addEventListener('change', e => {
-        const checked = e.target.checked;
-        const next = normaliseSelection(selection);
-        next.main[main] = checked;
-        next.sub[main] = {};
-        subtopics.forEach(s => { next.sub[main][s] = checked; });
-        updateSelection(next);
-        render();
-      });
-
-      const subList = document.createElement('div');
-      subList.className = `subtopic-list${expanded.has(main) ? ' is-open' : ''}`;
-      subtopics.forEach(sub => {
-        const checked = Boolean(selection.sub?.[main]?.[sub]);
-        const rawWeek = weekMap[sub] || '';
-        const parsedWeek = parseEstimatedWeek(rawWeek);
-        const weekLabel = rawWeek ? `Expected Week: ${rawWeek}` : '';
-        let weekClass = '';
-        if (parsedWeek) {
-          if (parsedWeek < currentWeek) weekClass = ' is-complete';
-          if (parsedWeek > currentWeek) weekClass = ' is-future';
-        }
-        const subRow = document.createElement('label');
-        subRow.className = `subtopic-item${weekClass}`;
-        subRow.innerHTML = `
-          <input type="checkbox" ${checked ? 'checked' : ''} />
-          <span>${sub}</span>
-          ${weekLabel ? `<span class="subtopic-week">${weekLabel}</span>` : ''}
-        `;
-        subRow.querySelector('input').addEventListener('change', e => {
-          const next = normaliseSelection(selection);
-          if (!next.sub[main]) next.sub[main] = {};
-          next.sub[main][sub] = e.target.checked;
-          const all = subtopics.every(s => next.sub[main][s]);
-          next.main[main] = all;
-          updateSelection(next);
-        });
-        subList.appendChild(subRow);
-      });
-      row.appendChild(subList);
-
-      row.querySelector('.expand-btn').addEventListener('click', () => {
-        if (expanded.has(main)) expanded.delete(main);
-        else expanded.add(main);
-        render();
-      });
-
-      list.appendChild(row);
-    });
-
-    body.appendChild(list);
-
-    detailHead.querySelector('[data-role="select-all"]').addEventListener('click', () => {
-      const next = { main: {}, sub: {} };
-      Object.keys(groups).forEach(main => {
-        next.main[main] = true;
-        next.sub[main] = {};
-        const subtopics = unique(groups[main].map(e => e.sub || 'General'));
-        subtopics.forEach(s => { next.sub[main][s] = true; });
-      });
-      updateSelection(next);
-      render();
-    });
-  };
-
-  const init = async () => {
-    body.innerHTML = '<p class="subtitle">Loading curriculum...</p>';
-    await loadCurriculum();
-    available = await getAvailableSubjects(year);
-    isSample = false;
-    if (!available.length) {
-      available = [...SAMPLE_SUBJECTS];
-      isSample = true;
-    }
     render();
   };
 
-  init();
-
-  let activeId = getState().activeChildId;
-  const onHash = () => {
-    if (location.hash !== '#/subjects') {
-      clearInterval(watchId);
-      window.removeEventListener('hashchange', onHash);
-    }
-  };
-  window.addEventListener('hashchange', onHash);
-  const watchId = setInterval(async () => {
-    const nextId = getState().activeChildId;
-    if (nextId !== activeId) {
-      activeId = nextId;
-      child = getActiveChild();
-      if (!child) {
-        location.hash = '#/add-child';
-        return;
-      }
-      setTitle(child);
-      year = child.year;
-      selected = '';
-      topics = [];
-      expanded.clear();
-      await init();
-    }
-  }, 300);
+  if (!subject) {
+    titleEl.textContent = `${child.name || 'Student'} - subjects`;
+    subtitleEl.textContent = 'Choose a subject to view the full curriculum.';
+    renderSubjectPicker();
+  } else {
+    titleEl.textContent = `${child.name || 'Student'} - ${subject}`;
+    subtitleEl.textContent = `Year ${year || '-'} curriculum topics from the national curriculum file.`;
+    renderSubjectPage();
+  }
 
   return section;
 }

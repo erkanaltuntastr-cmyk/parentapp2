@@ -232,7 +232,7 @@ export function ChildOverview(){
       const best = scores.length ? Math.max(...scores) : null;
       const color = scoreColor(best);
       return `
-        <div class="family-card${isActive ? '' : ' is-passive'}" style="border-left:4px solid ${color}">
+        <div class="family-card is-clickable${isActive ? '' : ' is-passive'}" style="border-left:4px solid ${color}" data-subject-card="${name}" role="button" tabindex="0">
           <div class="family-person-head">
             <div class="family-avatar info">${infoIcon}</div>
             <div class="family-card-title">${name}</div>
@@ -261,6 +261,9 @@ export function ChildOverview(){
     subjectList.appendChild(suggestCard);
 
     subjectList.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      input.addEventListener('click', e => {
+        e.stopPropagation();
+      });
       input.addEventListener('change', e => {
         const subjectName = e.target.getAttribute('data-subject') || '';
         if (!subjectName) return;
@@ -270,6 +273,22 @@ export function ChildOverview(){
           setSubjectActive(child.id, subjectName, false);
         }
         renderSections();
+      });
+    });
+
+    subjectList.querySelectorAll('[data-subject-card]').forEach(card => {
+      const open = () => {
+        const subjectName = card.getAttribute('data-subject-card');
+        if (!subjectName) return;
+        const encoded = encodeURIComponent(subjectName);
+        location.hash = `#/subject?subject=${encoded}`;
+      };
+      card.addEventListener('click', e => {
+        if (e.target.closest('input, label, .subject-toggle')) return;
+        open();
+      });
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter') open();
       });
     });
 

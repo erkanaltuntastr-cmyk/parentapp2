@@ -14,6 +14,7 @@ import { QuizWizard } from './views/QuizWizard.js';
 import { QuizSession } from './views/QuizSession.js';
 import { QuizReport } from './views/QuizReport.js';
 import { ManualQuiz } from './views/ManualQuiz.js';
+import { SubjectCurriculum } from './views/SubjectCurriculum.js';
 import { Header } from './components/Header.js';
 import { getActiveChild } from './usecases/children.js';
 import { getState } from './state/appState.js';
@@ -47,6 +48,8 @@ const routes = {
   '#/quiz-session': QuizSession,
   '#/quiz-report': QuizReport,
   '#/manual-quiz': ManualQuiz,
+  '#/subject': SubjectCurriculum,
+  '#/subjects': SubjectCurriculum,
   '#/pin-entry': PinEntry,
   '#/pin-setup': PinSetup,
   '#/export': () => placeholder('Export'),
@@ -95,7 +98,7 @@ async function guardChildSelected(route){
   const state = getState();
   const children = state.children || [];
   const activeValid = state.activeChildId && children.some(c => c.id === state.activeChildId);
-  const needsChild = ['#/child-overview', '#/quiz-wizard', '#/manual-quiz'];
+  const needsChild = ['#/child-overview', '#/quiz-wizard', '#/manual-quiz', '#/subject', '#/subjects'];
   const target = children.length ? '#/family-hub' : '#/add-child';
   if (route === '#/welcome' && !activeValid) {
     return { redirect: target };
@@ -138,15 +141,12 @@ export async function router(){
 
   // Choose route
   const key = location.hash || '#/welcome';
-  if (key === '#/subjects') {
-    location.hash = '#/child-overview';
-    return;
-  }
-  renderHeader(key);
+  const route = key.split('?')[0];
+  renderHeader(route);
 
   // Run guards
   for (const guard of guardChain) {
-    const outcome = await guard(key);
+    const outcome = await guard(route);
     if (outcome && outcome.redirect) {
       location.hash = outcome.redirect;
       return;
@@ -155,7 +155,7 @@ export async function router(){
 
   // Render
   app.innerHTML = '';
-  const View = routes[key] || Welcome;
+  const View = routes[route] || Welcome;
   const node = View();
   app.appendChild(node);
   app.focus(); // A11y: move focus to main content

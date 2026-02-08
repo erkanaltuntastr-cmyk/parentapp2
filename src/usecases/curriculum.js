@@ -106,7 +106,8 @@ export async function loadCurriculum(){
         subject: headers.indexOf('subject'),
         main: headers.indexOf('main topic'),
         sub: headers.indexOf('subtopic (statutory focus)'),
-        week: headers.indexOf('estimated week')
+        week: headers.indexOf('estimated week'),
+        difficulty: headers.indexOf('difficulty (1-5)')
       };
       const hasHeader = idx.year >= 0 && idx.subject >= 0;
       const yearIdx = idx.year >= 0 ? idx.year : 0;
@@ -114,6 +115,7 @@ export async function loadCurriculum(){
       const mainIdx = idx.main >= 0 ? idx.main : 2;
       const subIdx = idx.sub >= 0 ? idx.sub : 3;
       const weekIdx = idx.week >= 0 ? idx.week : 4;
+      const difficultyIdx = idx.difficulty >= 0 ? idx.difficulty : 5;
       const dataLines = hasHeader ? lines.slice(1) : lines;
       const rows = dataLines.map(line => {
         const raw = line.trim();
@@ -124,7 +126,8 @@ export async function loadCurriculum(){
           subject: (cols[subjectIdx] || '').trim(),
           mainTopic: (cols[mainIdx] || '').trim(),
           subtopic: (cols[subIdx] || '').trim(),
-          estimatedWeek: (cols[weekIdx] || '').trim()
+          estimatedWeek: (cols[weekIdx] || '').trim(),
+          difficulty: (cols[difficultyIdx] || '').trim()
         };
       }).filter(r => r.year && r.subject);
       if (rows.length) {

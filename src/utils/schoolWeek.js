@@ -19,3 +19,12 @@ export function getCurrentSchoolWeek(){
   if (!Number.isFinite(week) || week < 1) return 1;
   return week;
 }
+
+export function getCurrentYearWeek(date = new Date()){
+  const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = target.getUTCDay() || 7;
+  target.setUTCDate(target.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+  const week = Math.ceil(((target - yearStart) / 86400000 + 1) / 7);
+  return { week, year: target.getUTCFullYear() };
+}

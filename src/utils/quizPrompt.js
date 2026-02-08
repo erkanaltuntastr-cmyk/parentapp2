@@ -16,7 +16,7 @@ export function createPrompt(payload){
 
   return [
     'Oakwood Quiz Request',
-    `Learner: ${child.name || 'Pupil'} (${year})`,
+    `Learner: ${child.name || 'Student'} (${year})`,
     `Age: ${age || 'Unknown'}`,
     `Subject: ${subject}`,
     `Topics: ${topicLine}`,

@@ -338,6 +338,36 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   text-align:left; font-weight:700; cursor:pointer; color: var(--ink-900);
 }
 .subject-box.is-selected{ border-color: var(--brand-600); box-shadow: 0 10px 20px -18px rgba(79,70,229,0.5); }
+.curriculum-toolbar{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+.curriculum-toggle{ display:flex; align-items:center; gap: 8px; font-weight:600; }
+.curriculum-table{
+  width:100%;
+  border-collapse: collapse;
+  margin-top: var(--space-2);
+  text-align:left;
+}
+.curriculum-table-wrap{ overflow-x: auto; }
+.curriculum-table th,
+.curriculum-table td{
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-200);
+  font-size: var(--fs-300);
+}
+.curriculum-table th{
+  font-weight:700;
+  color: var(--ink-700);
+  background: #F8FAFC;
+}
+.curriculum-row.is-complete{ background:#F8FAFC; }
+.curriculum-row.is-future{ color:#94A3B8; }
+.curriculum-table input[type="checkbox"]{ transform: scale(1.05); }
 .topic-list{ display:flex; flex-direction:column; gap: 8px; margin-top: var(--space-3); text-align:left; }
 .topic-row{
   display:grid; grid-template-columns: 18px 1fr auto; gap: 8px;
