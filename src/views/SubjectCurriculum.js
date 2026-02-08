@@ -343,6 +343,8 @@ export function SubjectCurriculum(){
         rowsMarkup = mainRows.map(item => {
           const hasFuture = futureMains.has(item.main);
           const statusClass = item.weekValue ? (item.weekValue <= currentWeek ? ' is-complete' : ' is-future') : '';
+          const minDiff = Math.min(...item.diffLabel.split('-').map(d => Number(d)).filter(n => Number.isFinite(n)));
+          const diffClass = Number.isFinite(minDiff) ? (minDiff <= 1 ? 'diff-easy' : minDiff === 2 ? 'diff-medium' : 'diff-hard') : '';
           const badge = hasFuture
             ? `<span class="future-badge" title="Scheduled for later – may be advanced.">${clockIcon}<span>Future</span></span>`
             : '';
@@ -351,7 +353,7 @@ export function SubjectCurriculum(){
               <td class="main-topic-cell">${toProperCase(item.main)}</td>
               <td class="subtopic-cell">${item.subCount} Subtopics</td>
               <td class="week-cell">${item.weekLabel}</td>
-              <td class="difficulty-cell">${item.diffLabel}</td>
+              <td class="difficulty-cell ${diffClass}">${item.diffLabel}</td>
               <td class="select-cell-wrapper">
                 <div class="select-cell">
                   <input type="checkbox" data-role="main-toggle" data-main="${item.main}" ${item.checked ? 'checked' : ''} />
@@ -413,8 +415,21 @@ export function SubjectCurriculum(){
         Object.entries(groups).forEach(([main, entries]) => {
           const subs = unique(entries.map(e => e.sub || 'General'));
           if (!next.sub[main]) next.sub[main] = {};
-          subs.forEach(sub => { next.sub[main][sub] = true; });
-          next.main[main] = true;
+          subs.forEach(sub => {
+            const entry = entries.find(e => (e.sub || 'General') === sub);
+            const weekValue = parseEstimatedWeek(entry?.estimatedWeek);
+            const isFuture = weekValue && weekValue > currentWeek;
+            if (!isFuture) {
+              next.sub[main][sub] = true;
+            }
+          });
+          const selectedSubs = Object.values(next.sub[main] || {}).filter(Boolean).length;
+          const totalNonFuture = subs.filter(sub => {
+            const entry = entries.find(e => (e.sub || 'General') === sub);
+            const weekValue = parseEstimatedWeek(entry?.estimatedWeek);
+            return !weekValue || weekValue <= currentWeek;
+          }).length;
+          next.main[main] = selectedSubs === totalNonFuture && totalNonFuture > 0;
         });
         selection = next;
         setCurriculumSelection(child.id, subject, selection);
