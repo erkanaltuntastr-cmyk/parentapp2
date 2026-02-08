@@ -288,13 +288,15 @@ export function SubjectCurriculum(){
           const badge = isFuture
             ? `<span class="future-badge" title="Scheduled for later – may be advanced.">${clockIcon}<span>Future</span></span>`
             : '';
+          const diffNum = Number(item.difficulty);
+          const diffClass = Number.isFinite(diffNum) ? (diffNum <= 1 ? 'diff-easy' : diffNum === 2 ? 'diff-medium' : 'diff-hard') : '';
           return `
             <tr class="curriculum-row${statusClass}">
-              <td>${toProperCase(item.main)}</td>
-              <td class="subtopic-text">${toSentenceCase(item.sub)}</td>
-              <td>${item.estimatedWeek || '-'}</td>
-              <td>${item.difficulty || '-'}</td>
-              <td>
+              <td class="main-topic-cell">${toProperCase(item.main)}</td>
+              <td class="subtopic-cell">${toSentenceCase(item.sub)}</td>
+              <td class="week-cell">${item.estimatedWeek || '-'}</td>
+              <td class="difficulty-cell ${diffClass}">${item.difficulty || '-'}</td>
+              <td class="select-cell-wrapper">
                 <div class="select-cell">
                   <input type="checkbox" data-role="sub-toggle" data-main="${item.main}" data-sub="${item.sub}" ${checked ? 'checked' : ''} />
                   ${badge}
@@ -332,11 +334,11 @@ export function SubjectCurriculum(){
             : '';
           return `
             <tr class="curriculum-row${statusClass}">
-              <td>${toProperCase(item.main)}</td>
-              <td>${item.subCount} Subtopics</td>
-              <td>${item.weekLabel}</td>
-              <td>${item.diffLabel}</td>
-              <td>
+              <td class="main-topic-cell">${toProperCase(item.main)}</td>
+              <td class="subtopic-cell">${item.subCount} Subtopics</td>
+              <td class="week-cell">${item.weekLabel}</td>
+              <td class="difficulty-cell">${item.diffLabel}</td>
+              <td class="select-cell-wrapper">
                 <div class="select-cell">
                   <input type="checkbox" data-role="main-toggle" data-main="${item.main}" ${item.checked ? 'checked' : ''} />
                   ${badge}
@@ -350,17 +352,17 @@ export function SubjectCurriculum(){
       const headerMarkup = `
         <table class="curriculum-table is-header">
           <colgroup>
-            <col style="width:24%">
-            <col style="width:34%">
-            <col style="width:14%">
-            <col style="width:10%">
             <col style="width:18%">
+            <col style="width:44%">
+            <col style="width:13%">
+            <col style="width:10%">
+            <col style="width:15%">
           </colgroup>
           <thead>
             <tr>
               <th>Main Topic</th>
               <th>${showSubtopics ? 'Subtopic' : 'Subtopics'}</th>
-              <th>Estimated Week</th>
+              <th>Week</th>
               <th>Difficulty</th>
               <th>Select</th>
             </tr>
@@ -370,11 +372,11 @@ export function SubjectCurriculum(){
       const bodyMarkup = `
         <table class="curriculum-table">
           <colgroup>
-            <col style="width:24%">
-            <col style="width:34%">
-            <col style="width:14%">
-            <col style="width:10%">
             <col style="width:18%">
+            <col style="width:44%">
+            <col style="width:13%">
+            <col style="width:10%">
+            <col style="width:15%">
           </colgroup>
           <tbody>${rowsMarkup}</tbody>
         </table>
