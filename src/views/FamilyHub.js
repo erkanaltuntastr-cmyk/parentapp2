@@ -25,7 +25,7 @@ export function FamilyHub(){
 
   section.innerHTML = `
     <h1 class="h1">${title}</h1>
-    <p class="subtitle">Your family workspace for parents, teachers, and pupils.</p>
+    <p class="subtitle">Your family workspace for parents, teachers, and students.</p>
     <div class="family-body"></div>
   `;
 
@@ -126,7 +126,7 @@ export function FamilyHub(){
     const teacherMarkup = teachers.length ? teachers.map(t => {
       const assigned = (t.childIds || []).map(id => {
         const child = children.find(c => c.id === id);
-        return child?.name || 'Child';
+        return child?.name || 'Student';
       }).filter(Boolean);
       const subject = t.subject || 'Teacher';
       return `
@@ -188,7 +188,7 @@ export function FamilyHub(){
 
     const childList = childSection.querySelector('[data-role="child-list"]');
     if (!children.length) {
-      childList.innerHTML = '<p class="help">No children added yet.</p>';
+      childList.innerHTML = '<p class="help">No students added yet.</p>';
     } else {
       childList.innerHTML = children.map(child => {
         const icon = getIconById(child.iconId);
@@ -196,7 +196,7 @@ export function FamilyHub(){
           <div class="family-card is-clickable" data-child="${child.id}" role="button" tabindex="0">
             <div class="family-child-head">
               <div class="child-icon"><img src="${icon.src}" alt="${icon.id}" /></div>
-              <div class="family-card-title">${child.name || 'Unnamed Child'}</div>
+              <div class="family-card-title">${child.name || 'Unnamed Student'}</div>
             </div>
             <div class="help">${child.school || 'School not set'}</div>
             <div class="help">Year ${child.year || '-'}</div>
@@ -208,7 +208,7 @@ export function FamilyHub(){
             <div class="family-avatar neutral">+</div>
             <div class="family-card-title">Add Student</div>
           </div>
-          <div class="help">Create a new pupil profile.</div>
+          <div class="help">Create a new student profile.</div>
         </div>
       `;
       childList.querySelectorAll('[data-child]').forEach(card => {

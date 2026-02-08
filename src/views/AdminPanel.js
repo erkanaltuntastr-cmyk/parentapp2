@@ -32,7 +32,7 @@ export function AdminPanel(){
             <div class="admin-name">${name}</div>
             <div class="help">${email}</div>
           </div>
-          <div class="admin-cell">Children: ${count}</div>
+          <div class="admin-cell">Students: ${count}</div>
           <div class="admin-cell">
             <button class="button-secondary" data-view="${u.id}">View Profile</button>
           </div>

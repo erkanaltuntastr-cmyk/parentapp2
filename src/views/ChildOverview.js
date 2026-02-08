@@ -1,4 +1,4 @@
-import { getActiveChild, deleteChild, updateChildGroupName } from '../usecases/children.js';
+import { getActiveChild, updateChildGroupName } from '../usecases/children.js';
 import { addSubject, listSubjects, setSubjectActive } from '../usecases/subjects.js';
 import { getState } from '../state/appState.js';
 import { getIconById } from '../utils/icons.js';
@@ -49,7 +49,7 @@ export function ChildOverview(){
   const groupName = (child.groupName || '').trim();
   const icon = getIconById(child.iconId);
 
-  const title = name || 'Your child';
+  const title = name || 'Your student';
   const metaLine = `${school || 'School not set'} | Year ${year || '-'} | `;
   const activeUser = getActiveUser();
 
@@ -75,18 +75,9 @@ export function ChildOverview(){
     </div>
     <div class="overview-body"></div>
     <div class="actions" style="margin-top: var(--space-4);">
-      <div>
-        <button type="button" class="button-secondary" data-role="suggest-subject">Suggest New Subject</button>
-      </div>
-      <div style="margin-top: var(--space-2);">
-        <a class="button-secondary" href="#/add-child">Add another child</a>
-      </div>
-      <div style="margin-top: var(--space-1);">
-        <a class="button-secondary" href="#/welcome">Back to welcome</a>
-      </div>
       <div class="actions-row" style="margin-top: var(--space-3); justify-content:center;">
-        <button type="button" class="button-secondary" data-role="edit-child">Edit Child</button>
-        <button type="button" class="button-secondary" data-role="delete-child">Delete Child</button>
+        <a class="button-secondary" href="#/family-hub">Back to Family Hub</a>
+        <button type="button" class="button" data-role="edit-student">Edit Student's Info</button>
       </div>
     </div>
   `;
@@ -255,6 +246,20 @@ export function ChildOverview(){
       `;
     }).join('');
 
+    const suggestCard = document.createElement('div');
+    suggestCard.className = 'family-card is-clickable is-add';
+    suggestCard.setAttribute('data-role', 'suggest-subject');
+    suggestCard.setAttribute('role', 'button');
+    suggestCard.setAttribute('tabindex', '0');
+    suggestCard.innerHTML = `
+      <div class="family-person-head">
+        <div class="family-avatar neutral">+</div>
+        <div class="family-card-title">Suggest New Subject</div>
+      </div>
+      <div class="help">Request a subject to add for this student.</div>
+    `;
+    subjectList.appendChild(suggestCard);
+
     subjectList.querySelectorAll('input[type="checkbox"]').forEach(input => {
       input.addEventListener('change', e => {
         const subjectName = e.target.getAttribute('data-subject') || '';
@@ -267,29 +272,26 @@ export function ChildOverview(){
         renderSections();
       });
     });
+
+    const suggest = () => {
+      const idea = prompt('Suggest a new subject to add:');
+      if (!idea) return;
+      const user = getActiveUser();
+      const from = user?.username || 'Parent';
+      const message = `Subject suggestion for ${child.name || 'student'}: ${idea.trim()}`;
+      sendMessage(from, ADMIN_USERNAME, message);
+      alert('Thanks! Your suggestion was sent to Admin.');
+    };
+    suggestCard.addEventListener('click', suggest);
+    suggestCard.addEventListener('keydown', e => {
+      if (e.key === 'Enter') suggest();
+    });
   };
 
   renderSections();
 
-  section.querySelector('[data-role="edit-child"]').addEventListener('click', () => {
-    alert('Edit child is coming next.');
-  });
-  section.querySelector('[data-role="delete-child"]').addEventListener('click', () => {
-    const ok = confirm('Delete this child profile? This cannot be undone.');
-    if (!ok) return;
-    deleteChild(child.id);
-    location.hash = '#/select-child';
-  });
-
-  const suggestBtn = section.querySelector('[data-role="suggest-subject"]');
-  suggestBtn.addEventListener('click', () => {
-    const idea = prompt('Suggest a new subject to add:');
-    if (!idea) return;
-    const user = getActiveUser();
-    const from = user?.username || 'Parent';
-    const message = `Subject suggestion for ${child.name || 'child'}: ${idea.trim()}`;
-    sendMessage(from, ADMIN_USERNAME, message);
-    alert('Thanks! Your suggestion was sent to Admin.');
+  section.querySelector('[data-role="edit-student"]').addEventListener('click', () => {
+    alert('Edit student info is coming next.');
   });
 
   return section;

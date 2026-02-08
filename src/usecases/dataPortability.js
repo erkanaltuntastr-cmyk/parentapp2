@@ -41,7 +41,7 @@ export async function importData(file){
     throw new Error('Backup version is not supported.');
   }
   if (!Array.isArray(data.children)) {
-    throw new Error('Invalid backup: children must be an array.');
+    throw new Error('Invalid backup: students must be an array.');
   }
   const nextState = {
     __meta: { version: data._meta.version },

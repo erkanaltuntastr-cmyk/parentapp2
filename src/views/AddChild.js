@@ -38,7 +38,7 @@ export function AddChild(){
 
   const parentBlock = needsParent ? `
       <div class="parent-setup">
-        <h2 class="h2">One-time Setup: Parent Information (Required for first child)</h2>
+        <h2 class="h2">One-time Setup: Parent Information (Required for first student)</h2>
         <div class="field">
           <label for="parentName">Name</label>
           <input id="parentName" name="parentName" type="text" autocomplete="off" required />
@@ -85,7 +85,7 @@ export function AddChild(){
   ` : '';
 
   section.innerHTML = `
-    <h1 class="h1" id="add-child-title">Add Child</h1>
+    <h1 class="h1" id="add-child-title">Add Student</h1>
     <p class="subtitle" id="add-child-desc">Provide the basics. You can add more details later.</p>
 
     <form class="form" aria-labelledby="add-child-title" aria-describedby="add-child-desc">
@@ -115,7 +115,7 @@ export function AddChild(){
       </div>
 
       <div class="field">
-        <label for="gender">Child Gender</label>
+        <label for="gender">Student Gender</label>
         <select id="gender" name="gender">
           <option value="">Prefer not to say</option>
           <option value="female">Female</option>
@@ -125,7 +125,7 @@ export function AddChild(){
       </div>
 
       <div class="field">
-        <label>Child Icon</label>
+        <label>Student Icon</label>
         <div class="icon-grid">
           ${ICONS.map(i => `
             <button type="button" class="icon-btn" data-icon="${i.id}">
@@ -151,7 +151,7 @@ export function AddChild(){
         <small class="help">Add details about learning style, strengths, or challenges. This helps our AI give better advice later.</small>
       </div>
 
-      <small class="help">All child data is stored locally on this device.</small>
+      <small class="help">All student data is stored locally on this device.</small>
 
       <div class="actions-row">
         <button type="submit" class="button" data-role="primary-cta">Save and continue</button>
@@ -179,7 +179,7 @@ export function AddChild(){
       else parts.push('I am a parent');
       if (prof) parts.push(`a ${prof}`);
       if (place) parts.push(`from ${place}`);
-      return `${parts.join(', ')}. My goal is to support my child's growth and understand their school progress.`;
+      return `${parts.join(', ')}. My goal is to support my student's growth and understand their school progress.`;
     };
     const maybeAuto = () => {
       if (!parentBio) return;
@@ -373,7 +373,7 @@ export function AddChild(){
       await addChild({ name, dob, school, year, gender, notes, iconId: selectedIcon, studentUsername, studentPassword });
       location.hash = '#/child-overview';
     } catch (err) {
-      alert(err.message || 'Unable to add child.');
+      alert(err.message || 'Unable to add student.');
     }
   });
 

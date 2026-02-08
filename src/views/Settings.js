@@ -36,14 +36,14 @@ export function Settings(){
           <input id="teacherEmail" name="teacherEmail" type="text" autocomplete="off" required />
         </div>
         <div class="field">
-          <label>Assign Children</label>
+          <label>Assign Students</label>
           <div class="checkbox-grid">
             ${children.map(c => `
               <label class="check">
                 <input type="checkbox" name="teacherChild" value="${c.id}" />
-                <span>${c.name || 'Child'}${c.school ? ` - ${c.school}` : ''}</span>
+                <span>${c.name || 'Student'}${c.school ? ` - ${c.school}` : ''}</span>
               </label>
-            `).join('') || '<p class="help">Add a child to assign teachers.</p>'}
+            `).join('') || '<p class="help">Add a student to assign teachers.</p>'}
           </div>
         </div>
         <div class="actions-row">
@@ -58,7 +58,7 @@ export function Settings(){
               <div class="teacher-name">${t.name || 'Teacher'}</div>
               <div class="help">${t.email || ''}</div>
             </div>
-            <div class="help">${(t.childIds || []).length} child assigned</div>
+            <div class="help">${(t.childIds || []).length} student assigned</div>
           </div>
         `).join('') : '<p class="help">No teachers invited yet.</p>'}
       </div>
@@ -97,7 +97,7 @@ export function Settings(){
     const email = teacherForm.teacherEmail.value;
     const selected = Array.from(teacherForm.querySelectorAll('input[name="teacherChild"]:checked')).map(i => i.value);
     if (!selected.length) {
-      alert('Select at least one child.');
+      alert('Select at least one student.');
       return;
     }
     addTeacher({ name, email, childIds: selected });

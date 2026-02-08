@@ -43,7 +43,7 @@ export function SelectChild(){
           <div class="parent-avatar">P</div>
           <div class="parent-info">
             <div class="parent-name">Parent Profile</div>
-            <div class="parent-role">Complete setup in Add Child</div>
+            <div class="parent-role">Complete setup in Add Student</div>
           </div>
         </div>
       `;
@@ -56,7 +56,7 @@ export function SelectChild(){
 
     const childSection = document.createElement('div');
     childSection.className = 'children-section';
-    childSection.innerHTML = `<h2 class="h2">Your Children</h2>`;
+    childSection.innerHTML = `<h2 class="h2">Your Students</h2>`;
     const grid = document.createElement('div');
     grid.className = 'child-grid';
 
@@ -64,8 +64,8 @@ export function SelectChild(){
       const empty = document.createElement('div');
       empty.className = 'empty-state';
       empty.innerHTML = `
-        <p class="subtitle">Welcome! Let's add your first child.</p>
-        <a class="button" href="#/add-child">Add a child</a>
+        <p class="subtitle">Welcome! Let's add your first student.</p>
+        <a class="button" href="#/add-child">Add a student</a>
       `;
       childSection.appendChild(empty);
     } else {
@@ -81,7 +81,7 @@ export function SelectChild(){
         card.innerHTML = `
           <div class="child-icon"><img src="${icon.src}" alt="${icon.id}" /></div>
           <div class="child-title">
-            ${child.name || 'Unnamed Child'}
+            ${child.name || 'Unnamed Student'}
             ${pendingCount ? `<span class="task-badge">${pendingCount} Tasks Pending</span>` : ''}
           </div>
           ${age ? `<div class="child-age">${age}</div>` : ''}
@@ -108,7 +108,7 @@ export function SelectChild(){
     const addButton = document.createElement('a');
     addButton.className = 'button full-width';
     addButton.href = '#/add-child';
-    addButton.textContent = 'Add Child';
+    addButton.textContent = 'Add Student';
     childSection.appendChild(addButton);
     tree.appendChild(childSection);
   };

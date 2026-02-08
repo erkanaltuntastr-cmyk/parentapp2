@@ -51,7 +51,7 @@ export function SubjectCurriculum(){
   const titleEl = section.querySelector('.h1');
   const setTitle = current => {
     const name = (current?.name || '').trim();
-    titleEl.textContent = name ? `${name} - curriculum` : 'Your child - curriculum';
+    titleEl.textContent = name ? `${name} - curriculum` : 'Your student - curriculum';
   };
   setTitle(child);
 

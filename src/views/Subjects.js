@@ -13,16 +13,16 @@ export function Subjects(){
   }
 
   const name = (child.name || '').trim();
-  const title = name ? `${name} — subjects` : 'Your child — subjects';
+  const title = name ? `${name} - subjects` : 'Your student - subjects';
 
   section.innerHTML = `
     <h1 class="h1">${title}</h1>
-    <p class="subtitle">Start by adding the subjects your child studies.</p>
+    <p class="subtitle">Start by adding the subjects your student studies.</p>
     <div class="subjects-body"></div>
     <div class="actions" style="margin-top: var(--space-4);">
       <a class="button-secondary" href="#/child-overview">Back to overview</a>
       <div style="margin-top: var(--space-1);">
-        <a class="button-secondary" href="#/add-child">Add another child</a>
+        <a class="button-secondary" href="#/add-child">Add another student</a>
       </div>
     </div>
   `;
@@ -134,7 +134,7 @@ export function Subjects(){
   };
 
   const init = async () => {
-    body.innerHTML = '<p class="subtitle">Loading subjects…</p>';
+    body.innerHTML = '<p class="subtitle">Loading subjects...</p>';
     await loadCurriculum();
     availableSubjects = await getAvailableSubjects(year);
     if (!availableSubjects.length) {
