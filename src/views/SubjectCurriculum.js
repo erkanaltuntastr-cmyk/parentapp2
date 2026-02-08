@@ -296,6 +296,10 @@ export function SubjectCurriculum(){
             const diffNum = Number(item.difficulty);
             const diffClass = Number.isFinite(diffNum) ? (diffNum <= 1 ? 'diff-easy' : diffNum === 2 ? 'diff-medium' : 'diff-hard') : '';
             const itemStatusClass = item.weekValue ? (item.weekValue <= currentWeek ? ' is-complete' : ' is-future') : '';
+            const isFuture = item.weekValue && item.weekValue > currentWeek;
+            const badge = isFuture
+              ? `<span class="future-badge" title="Scheduled for later – may be advanced.">${clockIcon}<span>Future</span></span>`
+              : '';
             return `
               <tr class="subtopic-row${itemStatusClass}">
                 <td></td>
@@ -305,6 +309,7 @@ export function SubjectCurriculum(){
                 <td class="select-cell-wrapper">
                   <div class="select-cell">
                     <input type="checkbox" data-role="sub-toggle" data-main="${group.main}" data-sub="${item.sub}" ${checked ? 'checked' : ''} />
+                    ${badge}
                   </div>
                 </td>
               </tr>
