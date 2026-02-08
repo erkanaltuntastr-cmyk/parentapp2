@@ -30,6 +30,34 @@ function parseCsvLine(line){
   return out;
 }
 
+function splitCsvRows(text){
+  const rows = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (text[i + 1] === '"') {
+        cur += '""';
+        i++;
+        continue;
+      }
+      inQuotes = !inQuotes;
+      cur += ch;
+      continue;
+    }
+    if (ch === '\n' && !inQuotes) {
+      if (cur.trim()) rows.push(cur);
+      cur = '';
+      continue;
+    }
+    if (ch === '\r') continue;
+    cur += ch;
+  }
+  if (cur.trim()) rows.push(cur);
+  return rows;
+}
+
 function normaliseYear(year){
   if (year === null || year === undefined) return '';
   const s = String(year).trim();
@@ -65,7 +93,7 @@ export async function loadCurriculum(){
       const text = await fetchCsvText(source);
       if (!text) continue;
       const cleaned = text.replace(/^\uFEFF/, '');
-      const lines = cleaned.replace(/\\r\\n/g, '\\n').replace(/\\r/g, '\\n').split('\\n').filter(l => l.trim());
+      const lines = splitCsvRows(cleaned);
       if (!lines.length) continue;
       const rawHeader = lines[0].trim();
       const headerLine = rawHeader.startsWith('"') && rawHeader.endsWith('"')
@@ -80,12 +108,14 @@ export async function loadCurriculum(){
         sub: headers.indexOf('subtopic (statutory focus)'),
         week: headers.indexOf('estimated week')
       };
+      const hasHeader = idx.year >= 0 && idx.subject >= 0;
       const yearIdx = idx.year >= 0 ? idx.year : 0;
       const subjectIdx = idx.subject >= 0 ? idx.subject : 1;
       const mainIdx = idx.main >= 0 ? idx.main : 2;
       const subIdx = idx.sub >= 0 ? idx.sub : 3;
       const weekIdx = idx.week >= 0 ? idx.week : 4;
-      const rows = lines.slice(1).map(line => {
+      const dataLines = hasHeader ? lines.slice(1) : lines;
+      const rows = dataLines.map(line => {
         const raw = line.trim();
         const inner = raw.startsWith('"') && raw.endsWith('"') ? raw.slice(1, -1) : raw;
         const cols = parseCsvLine(inner);
