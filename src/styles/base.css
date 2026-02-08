@@ -345,6 +345,10 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   text-align:left;
   table-layout: fixed;
 }
+.curriculum-table-head .curriculum-table{
+  margin: 0;
+  margin-top: 0;
+}
 .curriculum-scroll-area{
   max-height: min(55vh, 520px);
   overflow-y: auto;
@@ -409,6 +413,9 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   font-weight:700;
   color: var(--ink-700);
   background: #F8FAFC;
+}
+.curriculum-table-head .curriculum-table th{
+  border-bottom: none;
 }
 .curriculum-table .subtopic-cell{
   font-size: var(--fs-300);
@@ -712,9 +719,19 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   align-items:center;
   gap: var(--space-2);
 }
+.week-number{
+  font-weight: 700;
+  color: var(--ink-700);
   font-size: var(--fs-400);
   white-space: nowrap;
   margin-left: 12px;
+}
+.curriculum-table-head{
+  border-radius: 12px;
+  border: 1px solid var(--border-200);
+  background: #F8FAFC;
+  overflow: hidden;
+  margin-bottom: var(--space-3);
 }
 .week-warning{
   margin-top: 4px;
