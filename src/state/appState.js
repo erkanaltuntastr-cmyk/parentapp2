@@ -25,6 +25,7 @@ const initialState = {
   quizDrafts: [],
   quizSessions: [],
   currentSchoolTermStartDate: getDefaultTermStartDate(),
+  expectedTeachingWeeks: 36,
   familyMembers: []
 };
 
@@ -76,6 +77,10 @@ function migrateState(current){
   }
   if (typeof current.currentSchoolTermStartDate !== 'string' || !current.currentSchoolTermStartDate.trim()) {
     current.currentSchoolTermStartDate = getDefaultTermStartDate();
+    changed = true;
+  }
+  if (!Number.isFinite(current.expectedTeachingWeeks) || current.expectedTeachingWeeks < 1) {
+    current.expectedTeachingWeeks = 36;
     changed = true;
   }
   if (Array.isArray(current.users)) {

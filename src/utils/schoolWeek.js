@@ -14,6 +14,7 @@ export function getCurrentSchoolWeek(){
   const start = new Date(raw);
   if (Number.isNaN(start.getTime())) return 1;
   const now = new Date();
+  if (start.getTime() > now.getTime()) return 1;
   const diffDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   const week = Math.floor(diffDays / 7) + 1;
   if (!Number.isFinite(week) || week < 1) return 1;

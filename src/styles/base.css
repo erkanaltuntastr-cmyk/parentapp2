@@ -354,6 +354,27 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   text-align:left;
 }
 .curriculum-table-wrap{ overflow-x: auto; }
+.select-cell{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+}
+.future-badge{
+  display:inline-flex;
+  align-items:center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background:#FEF3C7;
+  color:#92400E;
+  font-size: var(--fs-200);
+  font-weight:600;
+  white-space: nowrap;
+}
+.future-badge svg{
+  width:12px;
+  height:12px;
+}
 .curriculum-table th,
 .curriculum-table td{
   padding: 10px 12px;
@@ -552,6 +573,12 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 .week-number{
   font-weight: 700;
   color: var(--ink-700);
+}
+.week-warning{
+  margin-top: 4px;
+  color: #B45309;
+  font-size: var(--fs-300);
+  font-weight: 600;
 }
 .subtopic-item{
   display:flex;

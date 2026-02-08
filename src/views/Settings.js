@@ -1,13 +1,16 @@
 import { exportData, importData } from '../usecases/dataPortability.js';
 import { getFamilyName, setFamilyName } from '../usecases/family.js';
-import { getState } from '../state/appState.js';
+import { getState, saveState } from '../state/appState.js';
 import { addTeacher, listTeachers } from '../usecases/teachers.js';
 
 export function Settings(){
   const section = document.createElement('section');
   section.className = 'card';
   const familyName = getFamilyName();
-  const children = getState().children || [];
+  const state = getState();
+  const children = state.children || [];
+  const termStart = state.currentSchoolTermStartDate || '';
+  const expectedWeeks = Number.isFinite(state.expectedTeachingWeeks) ? state.expectedTeachingWeeks : 36;
   const teachers = listTeachers();
 
   section.innerHTML = `
@@ -21,6 +24,22 @@ export function Settings(){
       </div>
       <div class="actions-row">
         <button type="submit" class="button-secondary">Save Family Name</button>
+      </div>
+    </form>
+
+    <form class="form" data-role="school-form" style="margin-top: var(--space-4);">
+      <h2 class="h2">School Calendar</h2>
+      <div class="field">
+        <label for="termStart">Term Start Date</label>
+        <input id="termStart" name="termStart" type="date" value="${termStart}" required />
+      </div>
+      <div class="field">
+        <label for="expectedWeeks">Expected teaching weeks this year</label>
+        <input id="expectedWeeks" name="expectedWeeks" type="number" min="20" max="45" value="${expectedWeeks}" required />
+        <small class="help">Approximate – excludes holidays.</small>
+      </div>
+      <div class="actions-row">
+        <button type="submit" class="button-secondary">Save School Calendar</button>
       </div>
     </form>
 
@@ -88,6 +107,25 @@ export function Settings(){
     e.preventDefault();
     setFamilyName(familyForm.familyName.value);
     alert('Family name saved.');
+  });
+
+  const schoolForm = section.querySelector('[data-role="school-form"]');
+  schoolForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const term = schoolForm.termStart.value.trim();
+    const weeks = Number(schoolForm.expectedWeeks.value || 0);
+    const errors = [];
+    if (!term) errors.push('Term start date is required.');
+    if (!Number.isFinite(weeks) || weeks < 20 || weeks > 45) {
+      errors.push('Expected teaching weeks must be between 20 and 45.');
+    }
+    if (errors.length) {
+      alert(errors.join('\n'));
+      return;
+    }
+    const next = { ...getState(), currentSchoolTermStartDate: term, expectedTeachingWeeks: weeks };
+    saveState(next);
+    alert('School calendar saved.');
   });
 
   const teacherForm = section.querySelector('[data-role="teacher-form"]');

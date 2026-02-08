@@ -1,6 +1,7 @@
 import { getActiveChild, getCurriculumSelection, setCurriculumSelection } from '../usecases/children.js';
 import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/curriculum.js';
-import { parseEstimatedWeek, getCurrentYearWeek } from '../utils/schoolWeek.js';
+import { getState } from '../state/appState.js';
+import { parseEstimatedWeek, getCurrentSchoolWeek } from '../utils/schoolWeek.js';
 
 function normaliseSelection(raw){
   return {
@@ -71,6 +72,12 @@ function syncMainSelection(selection, groups){
 export function SubjectCurriculum(){
   const section = document.createElement('section');
   section.className = 'card';
+  const clockIcon = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
 
   const child = getActiveChild();
   if (!child) {
@@ -82,7 +89,11 @@ export function SubjectCurriculum(){
   const subjectParam = params.get('subject') || params.get('name') || '';
   let subject = subjectParam || '';
   const year = child.year;
-  const weekInfo = getCurrentYearWeek();
+  const state = getState();
+  const totalWeeks = Number.isFinite(state.expectedTeachingWeeks) ? state.expectedTeachingWeeks : 36;
+  const currentWeek = getCurrentSchoolWeek();
+  const termStart = new Date(state.currentSchoolTermStartDate);
+  const termStartFuture = !Number.isNaN(termStart.getTime()) && termStart.getTime() > Date.now();
 
   section.innerHTML = `
     <h1 class="h1"></h1>
@@ -97,6 +108,16 @@ export function SubjectCurriculum(){
   const titleEl = section.querySelector('.h1');
   const subtitleEl = section.querySelector('.subtitle');
   const body = section.querySelector('.curriculum-body');
+  const weekBanner = `
+    <div class="week-banner">
+      <div>
+        <div class="help">School Week</div>
+        <div class="help">Approximate – excludes holidays.</div>
+        ${termStartFuture ? '<div class="week-warning">Term start date future – check settings</div>' : ''}
+      </div>
+      <div class="week-number">Week ${currentWeek} / ${totalWeeks}</div>
+    </div>
+  `;
 
   const renderSubjectPicker = async () => {
     body.innerHTML = '<p class="subtitle">Loading subjects...</p>';
@@ -107,10 +128,7 @@ export function SubjectCurriculum(){
       return;
     }
     body.innerHTML = `
-      <div class="week-banner">
-        <div class="help">Current week (${weekInfo.year})</div>
-        <div class="week-number">Week ${weekInfo.week}</div>
-      </div>
+      ${weekBanner}
       <div class="subject-boxes"></div>
     `;
     const wrap = body.querySelector('.subject-boxes');
@@ -140,20 +158,68 @@ export function SubjectCurriculum(){
     const groups = buildGroups(rows);
     let selection = normaliseSelection(getCurriculumSelection(child.id, subject));
     if (!hasSelection(selection)) {
-      selection = buildAutoSelection(groups, weekInfo.week);
+      selection = buildAutoSelection(groups, currentWeek);
       setCurriculumSelection(child.id, subject, selection);
     } else {
       selection = syncMainSelection(selection, groups);
     }
 
+    const futureSubs = new Set();
+    const futureMains = new Set();
+    Object.entries(groups).forEach(([main, entries]) => {
+      entries.forEach(entry => {
+        const weekValue = parseEstimatedWeek(entry.estimatedWeek);
+        if (weekValue && weekValue > currentWeek) {
+          const sub = entry.sub || 'General';
+          futureSubs.add(`${main}|||${sub}`);
+          futureMains.add(main);
+        }
+      });
+    });
+
+    const isFutureKey = (main, sub) => futureSubs.has(`${main}|||${sub}`);
+
+    const confirmFutureSelection = () => new Promise(resolve => {
+      if (window.__oakwoodFutureTopicsRemember) {
+        resolve(true);
+        return;
+      }
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal">
+          <h2 class="h2">Future Topics Selected</h2>
+          <p class="help" style="margin-top: var(--space-2);">
+            Some selected topics are scheduled for future weeks and may be more advanced. Include them anyway?
+          </p>
+          <label class="check" style="margin-top: var(--space-2);">
+            <input type="checkbox" data-role="remember" />
+            Remember this session
+          </label>
+          <div class="actions-row" style="margin-top: var(--space-3);">
+            <button type="button" class="button-secondary" data-role="cancel">Cancel</button>
+            <button type="button" class="button" data-role="confirm">Continue anyway</button>
+          </div>
+        </div>
+      `;
+      const close = result => {
+        overlay.remove();
+        resolve(result);
+      };
+      overlay.querySelector('[data-role="cancel"]').addEventListener('click', () => close(false));
+      overlay.querySelector('[data-role="confirm"]').addEventListener('click', () => {
+        const remember = overlay.querySelector('[data-role="remember"]').checked;
+        if (remember) window.__oakwoodFutureTopicsRemember = true;
+        close(true);
+      });
+      document.body.appendChild(overlay);
+    });
+
     let showSubtopics = true;
 
     const render = () => {
       body.innerHTML = `
-        <div class="week-banner">
-          <div class="help">Current week (${weekInfo.year})</div>
-          <div class="week-number">Week ${weekInfo.week}</div>
-        </div>
+        ${weekBanner}
         <div class="curriculum-toolbar">
           <label class="check curriculum-toggle">
             <input type="checkbox" data-role="toggle-subtopics" ${showSubtopics ? 'checked' : ''} />
@@ -198,7 +264,11 @@ export function SubjectCurriculum(){
         rowsMarkup = flatRows.map(item => {
           const checked = Boolean(selection.sub?.[item.main]?.[item.sub]);
           const weekValue = item.weekValue;
-          const statusClass = weekValue ? (weekValue <= weekInfo.week ? ' is-complete' : ' is-future') : '';
+          const isFuture = weekValue && weekValue > currentWeek;
+          const statusClass = weekValue ? (weekValue <= currentWeek ? ' is-complete' : ' is-future') : '';
+          const badge = isFuture
+            ? `<span class="future-badge" title="Scheduled for later – may be advanced.">${clockIcon}<span>Future</span></span>`
+            : '';
           return `
             <tr class="curriculum-row${statusClass}">
               <td>${item.main}</td>
@@ -206,7 +276,10 @@ export function SubjectCurriculum(){
               <td>${item.estimatedWeek || '-'}</td>
               <td>${item.difficulty || '-'}</td>
               <td>
-                <input type="checkbox" data-role="sub-toggle" data-main="${item.main}" data-sub="${item.sub}" ${checked ? 'checked' : ''} />
+                <div class="select-cell">
+                  <input type="checkbox" data-role="sub-toggle" data-main="${item.main}" data-sub="${item.sub}" ${checked ? 'checked' : ''} />
+                  ${badge}
+                </div>
               </td>
             </tr>
           `;
@@ -233,7 +306,11 @@ export function SubjectCurriculum(){
           };
         }).sort((a, b) => a.main.localeCompare(b.main));
         rowsMarkup = mainRows.map(item => {
-          const statusClass = item.weekValue ? (item.weekValue <= weekInfo.week ? ' is-complete' : ' is-future') : '';
+          const hasFuture = futureMains.has(item.main);
+          const statusClass = item.weekValue ? (item.weekValue <= currentWeek ? ' is-complete' : ' is-future') : '';
+          const badge = hasFuture
+            ? `<span class="future-badge" title="Scheduled for later – may be advanced.">${clockIcon}<span>Future</span></span>`
+            : '';
           return `
             <tr class="curriculum-row${statusClass}">
               <td>${item.main}</td>
@@ -241,7 +318,10 @@ export function SubjectCurriculum(){
               <td>${item.weekLabel}</td>
               <td>${item.diffLabel}</td>
               <td>
-                <input type="checkbox" data-role="main-toggle" data-main="${item.main}" ${item.checked ? 'checked' : ''} />
+                <div class="select-cell">
+                  <input type="checkbox" data-role="main-toggle" data-main="${item.main}" ${item.checked ? 'checked' : ''} />
+                  ${badge}
+                </div>
               </td>
             </tr>
           `;
@@ -269,7 +349,11 @@ export function SubjectCurriculum(){
         render();
       });
 
-      body.querySelector('[data-role="select-all"]').addEventListener('click', () => {
+      body.querySelector('[data-role="select-all"]').addEventListener('click', async () => {
+        if (futureSubs.size && !window.__oakwoodFutureTopicsRemember) {
+          const ok = await confirmFutureSelection();
+          if (!ok) return;
+        }
         const next = { main: {}, sub: {} };
         Object.entries(groups).forEach(([main, entries]) => {
           const subs = unique(entries.map(e => e.sub || 'General'));
@@ -289,7 +373,7 @@ export function SubjectCurriculum(){
       });
 
       tableWrap.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.addEventListener('change', e => {
+        input.addEventListener('change', async e => {
           const role = e.target.getAttribute('data-role');
           const main = e.target.getAttribute('data-main');
           const sub = e.target.getAttribute('data-sub');
@@ -299,12 +383,26 @@ export function SubjectCurriculum(){
           const subs = unique(entries.map(entry => entry.sub || 'General'));
 
           if (role === 'main-toggle') {
+            if (e.target.checked && futureMains.has(main) && !window.__oakwoodFutureTopicsRemember) {
+              const ok = await confirmFutureSelection();
+              if (!ok) {
+                render();
+                return;
+              }
+            }
             if (!next.sub[main]) next.sub[main] = {};
             subs.forEach(s => { next.sub[main][s] = e.target.checked; });
             next.main[main] = e.target.checked;
           }
 
           if (role === 'sub-toggle' && sub) {
+            if (e.target.checked && isFutureKey(main, sub) && !window.__oakwoodFutureTopicsRemember) {
+              const ok = await confirmFutureSelection();
+              if (!ok) {
+                render();
+                return;
+              }
+            }
             if (!next.sub[main]) next.sub[main] = {};
             next.sub[main][sub] = e.target.checked;
             const allSelected = subs.length ? subs.every(s => next.sub?.[main]?.[s]) : e.target.checked;
