@@ -230,14 +230,17 @@ export function SubjectCurriculum(){
             <button type="button" class="button-secondary" data-role="clear-all">Clear all</button>
           </div>
         </div>
+        <div class="curriculum-table-head"></div>
         <div class="curriculum-scroll-area">
-          <div class="curriculum-table-wrap"></div>
+          <div class="curriculum-table-body"></div>
         </div>
       `;
 
-      const tableWrap = body.querySelector('.curriculum-table-wrap');
+      const tableHead = body.querySelector('.curriculum-table-head');
+      const tableBody = body.querySelector('.curriculum-table-body');
       if (!Object.keys(groups).length) {
-        tableWrap.innerHTML = '<p class="help">No topics available.</p>';
+        tableHead.innerHTML = '';
+        tableBody.innerHTML = '<p class="help">No topics available.</p>';
         return;
       }
 
@@ -330,8 +333,15 @@ export function SubjectCurriculum(){
         }).join('');
       }
 
-      tableWrap.innerHTML = `
-        <table class="curriculum-table">
+      const headerMarkup = `
+        <table class="curriculum-table is-header">
+          <colgroup>
+            <col style="width:24%">
+            <col style="width:34%">
+            <col style="width:14%">
+            <col style="width:10%">
+            <col style="width:18%">
+          </colgroup>
           <thead>
             <tr>
               <th>Main Topic</th>
@@ -341,9 +351,22 @@ export function SubjectCurriculum(){
               <th>Select</th>
             </tr>
           </thead>
+        </table>
+      `;
+      const bodyMarkup = `
+        <table class="curriculum-table">
+          <colgroup>
+            <col style="width:24%">
+            <col style="width:34%">
+            <col style="width:14%">
+            <col style="width:10%">
+            <col style="width:18%">
+          </colgroup>
           <tbody>${rowsMarkup}</tbody>
         </table>
       `;
+      tableHead.innerHTML = headerMarkup;
+      tableBody.innerHTML = bodyMarkup;
 
       const toggle = body.querySelector('[data-role="toggle-subtopics"]');
       toggle.addEventListener('change', () => {
@@ -374,7 +397,7 @@ export function SubjectCurriculum(){
         render();
       });
 
-      tableWrap.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      tableBody.querySelectorAll('input[type="checkbox"]').forEach(input => {
         input.addEventListener('change', async e => {
           const role = e.target.getAttribute('data-role');
           const main = e.target.getAttribute('data-main');

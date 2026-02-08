@@ -352,6 +352,7 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   border-collapse: collapse;
   margin-top: var(--space-2);
   text-align:left;
+  table-layout: fixed;
 }
 .curriculum-scroll-area{
   max-height: min(55vh, 520px);
@@ -390,9 +391,6 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   font-weight:700;
   color: var(--ink-700);
   background: #F8FAFC;
-  position: sticky;
-  top: 0;
-  z-index: 1;
 }
 .curriculum-row.is-complete{ background:#F8FAFC; }
 .curriculum-row.is-future{ color:#94A3B8; }
