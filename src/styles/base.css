@@ -791,7 +791,7 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 .wizard-modes{
   display:grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
+  gap: var(--space-5);
   margin-top: var(--space-4);
   margin-bottom: var(--space-4);
 }
@@ -800,7 +800,7 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   flex-direction:column;
   align-items:center;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-3);
+  padding: var(--space-5) var(--space-4);
   border: 2px solid transparent;
   border-radius: 14px;
   background: #fff;
@@ -808,6 +808,8 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   transition: all 0.2s ease;
   text-align: center;
   font-weight: 600;
+  min-height: 200px;
+  justify-content: center;
 }
 .mode-card[data-mode="automatic"]{
   background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
@@ -850,9 +852,13 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 @media (max-width: 768px) {
   .wizard-modes{
     grid-template-columns: 1fr;
-    gap: var(--space-2);
+    gap: var(--space-4);
     margin-top: var(--space-3);
     margin-bottom: var(--space-3);
+  }
+  .mode-card{
+    padding: var(--space-4) var(--space-3);
+    min-height: 160px;
   }
 }
 .wizard-top{
@@ -895,10 +901,17 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 .wizard-panel{
   display:none;
   margin-top: 0;
-  padding-top: var(--space-3);
+  padding-top: var(--space-4);
 }
 .wizard-panel.is-open{
   display:block;
+}
+.wizard-panel .field{
+  margin-bottom: var(--space-3);
+}
+.wizard-panel .expert-grid,
+.wizard-panel .preset-grid{
+  margin-top: var(--space-3);
 }
 .expert-grid{
   display:grid;
