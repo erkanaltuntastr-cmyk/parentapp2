@@ -111,7 +111,7 @@ body{
   border-radius: 16px;
   border:1px solid var(--border-200);
   box-shadow: var(--shadow-card);
-  max-width: 760px; width:100%;
+  max-width: 1140px; width:100%;
   text-align:center;
 }
 
@@ -384,18 +384,18 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 .future-badge{
   display:inline-flex;
   align-items:center;
-  gap: 4px;
-  padding: 2px 8px;
+  gap: 3px;
+  padding: 2px 6px;
   border-radius: 999px;
   background:#FEF3C7;
   color:#92400E;
-  font-size: var(--fs-200);
+  font-size: 10px;
   font-weight:600;
   white-space: nowrap;
 }
 .future-badge svg{
-  width:12px;
-  height:12px;
+  width:10px;
+  height:10px;
 }
 .curriculum-table th,
 .curriculum-table td{
@@ -427,21 +427,26 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 .curriculum-table .difficulty-cell{
   text-align: center;
   font-weight: 500;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 .curriculum-table .difficulty-cell.diff-easy{
   color: #059669;
   background: #D1FAE5;
   font-weight: 600;
+  border-radius: 6px;
 }
 .curriculum-table .difficulty-cell.diff-medium{
   color: #D97706;
   background: #FEF3C7;
   font-weight: 600;
+  border-radius: 6px;
 }
 .curriculum-table .difficulty-cell.diff-hard{
   color: #DC2626;
   background: #FEE2E2;
   font-weight: 600;
+  border-radius: 6px;
 }
 .curriculum-table .select-cell-wrapper{
   text-align: center;

@@ -352,11 +352,11 @@ export function SubjectCurriculum(){
       const headerMarkup = `
         <table class="curriculum-table is-header">
           <colgroup>
-            <col style="width:18%">
-            <col style="width:44%">
-            <col style="width:13%">
-            <col style="width:10%">
-            <col style="width:15%">
+            <col style="width:16%">
+            <col style="width:50%">
+            <col style="width:11%">
+            <col style="width:11%">
+            <col style="width:12%">
           </colgroup>
           <thead>
             <tr>
@@ -372,11 +372,11 @@ export function SubjectCurriculum(){
       const bodyMarkup = `
         <table class="curriculum-table">
           <colgroup>
-            <col style="width:18%">
-            <col style="width:44%">
-            <col style="width:13%">
-            <col style="width:10%">
-            <col style="width:15%">
+            <col style="width:16%">
+            <col style="width:50%">
+            <col style="width:11%">
+            <col style="width:11%">
+            <col style="width:12%">
           </colgroup>
           <tbody>${rowsMarkup}</tbody>
         </table>
