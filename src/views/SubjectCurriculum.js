@@ -230,15 +230,15 @@ export function SubjectCurriculum(){
     const render = () => {
       body.innerHTML = `
         ${weekBanner}
-        <div class="curriculum-toolbar">
+        <div class="curriculum-options-banner">
           <label class="check curriculum-toggle">
             <input type="checkbox" data-role="toggle-subtopics" ${showSubtopics ? 'checked' : ''} />
             Show subtopics
           </label>
-        </div>
-        <div class="curriculum-actions">
-          <button type="button" class="button-secondary" data-role="select-all">Select all</button>
-          <button type="button" class="button-secondary" data-role="clear-all">Clear all</button>
+          <div class="button-group">
+            <button type="button" class="button-secondary" data-role="select-all">Select all</button>
+            <button type="button" class="button-secondary" data-role="clear-all">Clear all</button>
+          </div>
         </div>
         <div class="curriculum-table-head"></div>
         <div class="curriculum-scroll-area">

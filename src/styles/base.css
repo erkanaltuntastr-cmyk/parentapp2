@@ -338,22 +338,6 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   text-align:left; font-weight:700; cursor:pointer; color: var(--ink-900);
 }
 .subject-box.is-selected{ border-color: var(--brand-600); box-shadow: 0 10px 20px -18px rgba(79,70,229,0.5); }
-.curriculum-toolbar{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:space-between;
-  gap: var(--space-2);
-  margin: var(--space-4) 0 var(--space-3) 0;
-  padding: var(--space-2) 0;
-}
-.curriculum-toggle{ display:flex; align-items:center; gap: 8px; font-weight:600; }
-.curriculum-actions{
-  display:flex;
-  align-items:center;
-  gap: var(--space-3);
-  margin: var(--space-3) 0 var(--space-3) 0;
-}
 .curriculum-table{
   width:100%;
   border-collapse: collapse;
@@ -703,6 +687,31 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 .week-number{
   font-weight: 700;
   color: var(--ink-700);
+}
+.curriculum-options-banner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: var(--space-3);
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid var(--border-200);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+.curriculum-toggle{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  font-weight: 600;
+  margin: 0;
+}
+.button-group{
+  display:flex;
+  align-items:center;
+  gap: var(--space-2);
+}
   font-size: var(--fs-400);
   white-space: nowrap;
   margin-left: 12px;
