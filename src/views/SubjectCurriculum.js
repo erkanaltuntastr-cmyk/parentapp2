@@ -11,6 +11,12 @@ function toProperCase(str) {
     .join(' ');
 }
 
+function toSentenceCase(str) {
+  if (!str) return '';
+  const s = String(str).toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 function normaliseSelection(raw){
   return {
     main: raw?.main ? { ...raw.main } : {},
@@ -285,7 +291,7 @@ export function SubjectCurriculum(){
           return `
             <tr class="curriculum-row${statusClass}">
               <td>${toProperCase(item.main)}</td>
-              <td>${toProperCase(item.sub)}</td>
+              <td class="subtopic-text">${toSentenceCase(item.sub)}</td>
               <td>${item.estimatedWeek || '-'}</td>
               <td>${item.difficulty || '-'}</td>
               <td>
