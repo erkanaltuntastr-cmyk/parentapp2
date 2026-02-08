@@ -3,6 +3,14 @@ import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/cur
 import { getState } from '../state/appState.js';
 import { parseEstimatedWeek, getCurrentSchoolWeek } from '../utils/schoolWeek.js';
 
+function toProperCase(str) {
+  if (!str) return '';
+  return String(str)
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 function normaliseSelection(raw){
   return {
     main: raw?.main ? { ...raw.main } : {},
@@ -134,7 +142,7 @@ export function SubjectCurriculum(){
     const wrap = body.querySelector('.subject-boxes');
     wrap.innerHTML = subjects
       .sort((a, b) => a.localeCompare(b))
-      .map(name => `<button type="button" class="subject-box" data-subject="${name}">${name}</button>`)
+      .map(name => `<button type="button" class="subject-box" data-subject="${name}">${toProperCase(name)}</button>`)
       .join('');
     wrap.querySelectorAll('[data-subject]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -276,8 +284,8 @@ export function SubjectCurriculum(){
             : '';
           return `
             <tr class="curriculum-row${statusClass}">
-              <td>${item.main}</td>
-              <td>${item.sub}</td>
+              <td>${toProperCase(item.main)}</td>
+              <td>${toProperCase(item.sub)}</td>
               <td>${item.estimatedWeek || '-'}</td>
               <td>${item.difficulty || '-'}</td>
               <td>
@@ -318,8 +326,8 @@ export function SubjectCurriculum(){
             : '';
           return `
             <tr class="curriculum-row${statusClass}">
-              <td>${item.main}</td>
-              <td>${item.subCount} subtopics</td>
+              <td>${toProperCase(item.main)}</td>
+              <td>${item.subCount} Subtopics</td>
               <td>${item.weekLabel}</td>
               <td>${item.diffLabel}</td>
               <td>
@@ -445,12 +453,12 @@ export function SubjectCurriculum(){
   };
 
   if (!subject) {
-    titleEl.textContent = `${child.name || 'Student'} - subjects`;
-    subtitleEl.textContent = 'Choose a subject to view the full curriculum.';
+    titleEl.textContent = `${toProperCase(child.name) || 'Student'} - Subjects`;
+    subtitleEl.textContent = 'Choose A Subject To View The Full Curriculum.';
     renderSubjectPicker();
   } else {
-    titleEl.textContent = `${child.name || 'Student'} - ${subject}`;
-    subtitleEl.textContent = `Year ${year || '-'} curriculum topics from the national curriculum file.`;
+    titleEl.textContent = `${toProperCase(child.name) || 'Student'} - ${toProperCase(subject)}`;
+    subtitleEl.textContent = `Year ${year || '-'} Curriculum Topics From The National Curriculum File.`;
     renderSubjectPage();
   }
 
