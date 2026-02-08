@@ -6,6 +6,15 @@ import { getActiveUser } from '../usecases/auth.js';
 import { listFamilyMembers, addFamilyMember } from '../usecases/familyMembers.js';
 import { listTeachers, addTeacher } from '../usecases/teachers.js';
 
+function toProperCase(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export function FamilyHub(){
   const section = document.createElement('section');
   section.className = 'card';
@@ -25,7 +34,7 @@ export function FamilyHub(){
 
   section.innerHTML = `
     <h1 class="h1">${title}</h1>
-    <p class="subtitle">Your family workspace for parents, teachers, and students.</p>
+    <p class="subtitle">Your Family Workspace For Parents, Teachers, And Students.</p>
     <div class="family-body"></div>
   `;
 
@@ -81,7 +90,7 @@ export function FamilyHub(){
           <div class="family-avatar neutral">+</div>
           <div class="family-card-title">Invite Parent</div>
         </div>
-        <div class="help">Add another family member.</div>
+        <div class="help">Add Another Family Member.</div>
       </div>
     `;
     parentsList.innerHTML = parentMarkup ? `${parentMarkup}${inviteMarkup}` : inviteMarkup;
@@ -139,14 +148,14 @@ export function FamilyHub(){
           ${t.email ? `<div class="help">${t.email}</div>` : ''}
         </div>
       `;
-    }).join('') : '<p class="help">No teachers linked yet.</p>';
+    }).join('') : '<p class="help">No Teachers Linked Yet.</p>';
     const inviteTeacherMarkup = `
       <div class="family-card is-clickable is-add" data-role="add-teacher" role="button" tabindex="0">
         <div class="family-person-head">
           <div class="family-avatar neutral">+</div>
           <div class="family-card-title">Invite Teacher</div>
         </div>
-        <div class="help">Add a new teacher contact.</div>
+        <div class="help">Add A New Teacher Contact.</div>
       </div>
     `;
     teacherList.innerHTML = teachers.length ? `${teacherMarkup}${inviteTeacherMarkup}` : inviteTeacherMarkup;
@@ -188,7 +197,7 @@ export function FamilyHub(){
 
     const childList = childSection.querySelector('[data-role="child-list"]');
     if (!children.length) {
-      childList.innerHTML = '<p class="help">No students added yet.</p>';
+      childList.innerHTML = '<p class="help">No Students Added Yet.</p>';
     } else {
       childList.innerHTML = children.map(child => {
         const icon = getIconById(child.iconId);
@@ -198,7 +207,7 @@ export function FamilyHub(){
               <div class="child-icon"><img src="${icon.src}" alt="${icon.id}" /></div>
               <div class="family-card-title">${child.name || 'Unnamed Student'}</div>
             </div>
-            <div class="help">${child.school || 'School not set'}</div>
+            <div class="help">${child.school || 'School Not Set'}</div>
             <div class="help">Year ${child.year || '-'}</div>
           </div>
         `;
@@ -208,7 +217,7 @@ export function FamilyHub(){
             <div class="family-avatar neutral">+</div>
             <div class="family-card-title">Add Student</div>
           </div>
-          <div class="help">Create a new student profile.</div>
+          <div class="help">Create A New Student Profile.</div>
         </div>
       `;
       childList.querySelectorAll('[data-child]').forEach(card => {

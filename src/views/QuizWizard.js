@@ -119,7 +119,7 @@ export function QuizWizard(){
       return;
     }
     topicWrap.innerHTML = selectedGroups.map(group => `
-      <details class="topic-accordion" open>
+      <details class="topic-accordion">
         <summary>${group.main} (${group.subs.length})</summary>
         <div class="topic-subgrid">
           ${group.subs.map(sub => `<span class="topic-chip is-readonly">${sub}</span>`).join('')}
@@ -233,15 +233,17 @@ export function QuizWizard(){
         <h3 class="h3">Pedagogical Review</h3>
         <p class="help">${feedback.feedback || 'No feedback available.'}</p>
         ${suggestions.length ? `
-          <div class="suggest-list">
-            ${suggestions.map(item => `
-              <label class="check">
-                <input type="checkbox" disabled ${applied ? 'checked' : ''} />
-                <span>${item}</span>
-              </label>
-            `).join('')}
-          </div>
-        ` : '<p class="help">No suggestions. Ready to proceed.</p>'}
+              <ul class="suggest-list">
+                ${suggestions.map(item => `
+                  <li>
+                    <label class="check">
+                      <input type="checkbox" disabled ${applied ? 'checked' : ''} />
+                      <span>${item}</span>
+                    </label>
+                  </li>
+                `).join('')}
+              </ul>
+            ` : '<p class="help">No suggestions. Ready to proceed.</p>'}
         <details class="prompt-accordion">
           <summary>Prompt Preview</summary>
           <pre>${prompt}</pre>

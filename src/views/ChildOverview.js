@@ -8,6 +8,16 @@ import { getActiveUser, ADMIN_USERNAME } from '../usecases/auth.js';
 import { sendMessage } from '../usecases/messages.js';
 import { getAvailableSubjects } from '../usecases/curriculum.js';
 
+// Title Case / Proper Font helper
+function toProperCase(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 function scoreColor(score){
   if (score === null || score === undefined) return '#E2E8F0';
   if (score >= 100) return '#22C55E';
@@ -43,14 +53,14 @@ export function ChildOverview(){
     return section;
   }
 
-  const name = (child.name || '').trim();
+  const name = toProperCase((child.name || '').trim());
   const year = Number(child.year || 0);
-  const school = (child.school || '').trim();
-  const groupName = (child.groupName || '').trim();
+  const school = toProperCase((child.school || '').trim());
+  const groupName = toProperCase((child.groupName || '').trim());
   const icon = getIconById(child.iconId);
 
-  const title = name || 'Your student';
-  const metaLine = `${school || 'School not set'} | Year ${year || '-'} | `;
+  const title = name || 'Your Student';
+  const metaLine = `${school || 'School Not Set'} | Year ${year || '-'} | `;
   const activeUser = getActiveUser();
 
   section.innerHTML = `
@@ -76,7 +86,7 @@ export function ChildOverview(){
     <div class="overview-body"></div>
     <div class="actions" style="margin-top: var(--space-4);">
       <div class="actions-row" style="margin-top: var(--space-3); justify-content:center;">
-        <a class="button-secondary" href="#/family-hub">Back to Family Hub</a>
+        <a class="button-secondary" href="#/family-hub">Back To Family Hub</a>
         <button type="button" class="button" data-role="edit-student">Edit Student's Info</button>
       </div>
     </div>

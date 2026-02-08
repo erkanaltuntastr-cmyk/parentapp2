@@ -2,6 +2,15 @@ import { getState } from '../state/appState.js';
 import { getActiveUser, ADMIN_USERNAME } from '../usecases/auth.js';
 import { sendMessage, getMessages } from '../usecases/messages.js';
 
+function toProperCase(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 function isEmail(value){
   return String(value || '').includes('@');
 }
@@ -42,7 +51,7 @@ export function AdminPanel(){
     return `
       <h2 class="h2">Users</h2>
       <div class="admin-list">
-        ${rows || '<p class="help">No registered users.</p>'}
+        ${rows || '<p class="help">No Registered Users.</p>'}
       </div>
     `;
   };
@@ -64,7 +73,7 @@ export function AdminPanel(){
     return `
       <h2 class="h2">Messages</h2>
       <div class="admin-list">
-        ${list || '<p class="help">No messages.</p>'}
+        ${list || '<p class="help">No Messages.</p>'}
       </div>
       <form class="form" style="margin-top: var(--space-3);">
         <div class="field">

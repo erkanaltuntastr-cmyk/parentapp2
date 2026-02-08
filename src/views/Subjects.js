@@ -2,6 +2,15 @@ import { getActiveChild } from '../usecases/children.js';
 import { listSubjects, listSubjectNames, addSubject, removeSubject } from '../usecases/subjects.js';
 import { getAvailableSubjects, getTopics, loadCurriculum } from '../usecases/curriculum.js';
 
+function toProperCase(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export function Subjects(){
   const section = document.createElement('section');
   section.className = 'card';
@@ -13,16 +22,16 @@ export function Subjects(){
   }
 
   const name = (child.name || '').trim();
-  const title = name ? `${name} - subjects` : 'Your student - subjects';
+  const title = name ? `${name} - Subjects` : 'Your Student - Subjects';
 
   section.innerHTML = `
     <h1 class="h1">${title}</h1>
-    <p class="subtitle">Start by adding the subjects your student studies.</p>
+    <p class="subtitle">Start By Adding The Subjects Your Student Studies.</p>
     <div class="subjects-body"></div>
     <div class="actions" style="margin-top: var(--space-4);">
-      <a class="button-secondary" href="#/child-overview">Back to overview</a>
+      <a class="button-secondary" href="#/child-overview">Back To Overview</a>
       <div style="margin-top: var(--space-1);">
-        <a class="button-secondary" href="#/add-child">Add another student</a>
+        <a class="button-secondary" href="#/add-child">Add Another Student</a>
       </div>
     </div>
   `;
@@ -42,7 +51,7 @@ export function Subjects(){
     if (!addedNames.length) {
       const empty = document.createElement('p');
       empty.className = 'subtitle';
-      empty.textContent = 'No subjects yet.';
+      empty.textContent = 'No Subjects Yet.';
       body.appendChild(empty);
     } else {
       const list = document.createElement('div');
@@ -50,8 +59,21 @@ export function Subjects(){
       addedNames.forEach(item => {
         const row = document.createElement('div');
         row.className = 'subject-row';
+        
+        const content = document.createElement('div');
+        content.className = 'subject-row-content';
+        
         const label = document.createElement('span');
         label.textContent = item;
+        
+        const infoIcon = document.createElement('div');
+        infoIcon.className = 'info-icon-tooltip';
+        infoIcon.title = 'Subject Information';
+        infoIcon.innerHTML = '<span class="info-icon"></span>';
+        
+        content.appendChild(label);
+        content.appendChild(infoIcon);
+        
         const remove = document.createElement('a');
         remove.href = '#';
         remove.className = 'button-secondary';
@@ -61,7 +83,8 @@ export function Subjects(){
           removeSubject(childId, item);
           render();
         });
-        row.appendChild(label);
+        
+        row.appendChild(content);
         row.appendChild(remove);
         list.appendChild(row);
       });
@@ -71,11 +94,11 @@ export function Subjects(){
     const selectWrap = document.createElement('div');
     selectWrap.className = 'field';
     const label = document.createElement('label');
-    label.textContent = 'Choose a subject';
+    label.textContent = 'Choose A Subject';
     label.setAttribute('for', 'subjectSelect');
     const select = document.createElement('select');
     select.id = 'subjectSelect';
-    select.innerHTML = `<option value="">Select a subject</option>` + availableSubjects.map(s => {
+    select.innerHTML = `<option value="">Select A Subject</option>` + availableSubjects.map(s => {
       const selected = s === selectedSubject ? ' selected' : '';
       return `<option value="${s}"${selected}>${s}</option>`;
     }).join('');
@@ -100,7 +123,7 @@ export function Subjects(){
     if (selectedSubject && topics.length) {
       const heading = document.createElement('p');
       heading.className = 'subtitle';
-      heading.textContent = 'Topics and estimated weeks';
+      heading.textContent = 'Topics And Estimated Weeks';
       topicWrap.appendChild(heading);
       topics.forEach(t => {
         const row = document.createElement('div');
@@ -121,7 +144,7 @@ export function Subjects(){
     } else if (selectedSubject) {
       const none = document.createElement('p');
       none.className = 'help';
-      none.textContent = 'No topics available for this subject.';
+      none.textContent = 'No Topics Available For This Subject.';
       topicWrap.appendChild(none);
     }
     body.appendChild(topicWrap);
@@ -134,11 +157,11 @@ export function Subjects(){
   };
 
   const init = async () => {
-    body.innerHTML = '<p class="subtitle">Loading subjects...</p>';
+    body.innerHTML = '<p class="subtitle">Loading Subjects...</p>';
     await loadCurriculum();
     availableSubjects = await getAvailableSubjects(year);
     if (!availableSubjects.length) {
-      body.innerHTML = '<p class="subtitle">No curriculum subjects found for this year.</p>';
+      body.innerHTML = '<p class="subtitle">No Curriculum Subjects Found For This Year.</p>';
       return;
     }
     render();

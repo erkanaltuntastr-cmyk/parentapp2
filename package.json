@@ -8,6 +8,12 @@
     "approve": "node scripts/approval.mjs",
     "gate": "node scripts/stop.mjs",
     "dev:python": "python3 -m http.server 5173",
-    "dev:node": "node scripts/serve.mjs"
+    "dev:node": "node scripts/serve.mjs",
+    "css:build": "tailwindcss -i ./src/styles/input.css -o ./src/styles/main.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.35",
+    "autoprefixer": "^10.4.18"
   }
 }

@@ -5,15 +5,25 @@ import { getIconById } from '../utils/icons.js';
 import { listAssignments } from '../usecases/assignments.js';
 import { getFamilyName } from '../usecases/family.js';
 
+// Title Case / Proper Font helper
+function toProperCase(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export function SelectChild(){
   const section = document.createElement('section');
   section.className = 'card';
 
-  const familyName = getFamilyName();
+  const familyName = toProperCase(getFamilyName());
   const title = familyName ? `${familyName} Family` : 'Family Tree';
   section.innerHTML = `
     <h1 class="h1">${title}</h1>
-    <p class="subtitle">Manage your family profiles in one place.</p>
+    <p class="subtitle">Manage Your Family Profiles In One Place.</p>
     <div class="family-tree"></div>
   `;
 
@@ -28,11 +38,12 @@ export function SelectChild(){
     parentWrap.className = 'parent-section';
     if (parent) {
       const initials = `${(parent.name || 'P')[0] || 'P'}${(parent.surname || '')[0] || ''}`.toUpperCase();
+      const parentName = toProperCase(`${parent.name || 'Parent'} ${parent.surname || ''}`);
       parentWrap.innerHTML = `
         <div class="parent-card">
           <div class="parent-avatar">${initials}</div>
           <div class="parent-info">
-            <div class="parent-name">${parent.name || 'Parent'} ${parent.surname || ''}</div>
+            <div class="parent-name">${parentName}</div>
             <div class="parent-role">Parent</div>
           </div>
         </div>
@@ -43,7 +54,7 @@ export function SelectChild(){
           <div class="parent-avatar">P</div>
           <div class="parent-info">
             <div class="parent-name">Parent Profile</div>
-            <div class="parent-role">Complete setup in Add Student</div>
+            <div class="parent-role">Complete Setup In Add Student</div>
           </div>
         </div>
       `;
@@ -64,8 +75,8 @@ export function SelectChild(){
       const empty = document.createElement('div');
       empty.className = 'empty-state';
       empty.innerHTML = `
-        <p class="subtitle">Welcome! Let's add your first student.</p>
-        <a class="button" href="#/add-child">Add a student</a>
+        <p class="subtitle">Welcome! Let's Add Your First Student.</p>
+        <a class="button" href="#/add-child">Add A Student</a>
       `;
       childSection.appendChild(empty);
     } else {
@@ -77,15 +88,23 @@ export function SelectChild(){
         const icon = getIconById(child.iconId);
         const age = getDetailedAge(child.dob);
         const pendingCount = listAssignments(child.id, 'pending').length;
+        const childName = toProperCase(child.name || 'Unnamed Student');
+        const childSchool = toProperCase(child.school || 'School Not Set');
 
         card.innerHTML = `
-          <div class="child-icon"><img src="${icon.src}" alt="${icon.id}" /></div>
-          <div class="child-title">
-            ${child.name || 'Unnamed Student'}
-            ${pendingCount ? `<span class="task-badge">${pendingCount} Tasks Pending</span>` : ''}
+          <div class="child-card-header">
+            <div class="child-card-avatar">
+              <img src="${icon.src}" alt="${icon.id}" />
+            </div>
+            <div class="child-card-info">
+              <div class="child-card-name">${childName}</div>
+              ${pendingCount ? `<span class="child-card-pending">${pendingCount} Tasks Pending</span>` : ''}
+            </div>
           </div>
-          ${age ? `<div class="child-age">${age}</div>` : ''}
-          <div class="child-meta">${child.school || 'School not set'}</div>
+          <div class="child-card-meta">
+            ${age ? `<div>${age}</div>` : ''}
+            <div>${childSchool}</div>
+          </div>
         `;
 
         const open = () => {
@@ -108,7 +127,7 @@ export function SelectChild(){
     const addButton = document.createElement('a');
     addButton.className = 'button full-width';
     addButton.href = '#/add-child';
-    addButton.textContent = 'Add Student';
+    addButton.textContent = 'Add A Student';
     childSection.appendChild(addButton);
     tree.appendChild(childSection);
   };

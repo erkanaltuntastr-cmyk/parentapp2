@@ -1,0 +1,1065 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============ Custom Components ============ */
+
+/* -------- Typography -------- */
+@layer components {
+  h1,
+  .h1 {
+    @apply text-4xl font-bold tracking-tight text-neutral-900 mb-2;
+  }
+
+  h2,
+  .h2 {
+    @apply text-3xl font-bold tracking-tight text-neutral-900 mb-2;
+  }
+
+  h3,
+  .h3 {
+    @apply text-2xl font-semibold text-neutral-900 mb-1.5;
+  }
+
+  h4,
+  .h4 {
+    @apply text-xl font-semibold text-neutral-900 mb-1;
+  }
+
+  h5,
+  .h5 {
+    @apply text-lg font-semibold text-neutral-900 mb-1;
+  }
+
+  h6,
+  .h6 {
+    @apply text-base font-semibold text-neutral-900;
+  }
+
+  p {
+    @apply text-neutral-700 leading-relaxed;
+  }
+
+  .subtitle {
+    @apply text-lg text-neutral-600 mb-4;
+  }
+
+  .text-muted {
+    @apply text-neutral-500;
+  }
+
+  small {
+    @apply text-sm text-neutral-600;
+  }
+}
+
+/* -------- Site Layout -------- */
+@layer components {
+  .site-header {
+    @apply flex items-center px-5 py-4 border-b border-neutral-200 bg-white/90 backdrop-blur-sm sticky top-0 z-40;
+  }
+
+  .site-footer {
+    @apply mt-12 py-8 px-5 border-t border-neutral-200 bg-neutral-50 text-center;
+  }
+
+  /* -------- Brand -------- */
+  .brand {
+    @apply flex items-center gap-2;
+  }
+
+  .logo {
+    @apply w-6 h-6;
+  }
+
+  .brand-text {
+    @apply flex flex-col;
+  }
+
+  .brand-line-1 {
+    @apply font-semibold tracking-wide text-neutral-900;
+  }
+
+  .brand-line-2 {
+    @apply text-xs text-neutral-500 tracking-wider;
+  }
+
+  /* -------- Global Header -------- */
+  .global-header {
+    @apply w-full grid grid-cols-3 items-center gap-3 px-5 py-4 border-b border-neutral-200 bg-white;
+  }
+
+  .header-left {
+    @apply flex items-center gap-2 font-semibold no-underline text-neutral-900;
+  }
+
+  .brand-link:hover {
+    @apply opacity-80 transition-opacity;
+  }
+
+  .header-nav {
+    @apply flex gap-3 justify-center;
+  }
+
+  .header-nav a {
+    @apply no-underline text-neutral-700 font-semibold transition-colors hover:text-neutral-900;
+  }
+
+  .child-header .header-nav a {
+    @apply text-emerald-700 hover:text-emerald-800;
+  }
+
+  .child-header .header-left {
+    @apply text-emerald-700;
+  }
+
+  .nav-badge {
+    @apply inline-flex items-center justify-center min-w-fit h-5 px-1.5 ml-1.5 rounded-full bg-success-500 text-white text-xs font-bold;
+  }
+
+  /* -------- Header Avatar -------- */
+  .header-right {
+    @apply flex justify-end relative;
+  }
+
+  .avatar-btn {
+    @apply flex items-center gap-2.5 bg-white border border-neutral-200 rounded-full px-2.5 py-1.5 cursor-pointer hover:bg-neutral-50 transition-colors;
+  }
+
+  .avatar {
+    @apply w-7 h-7 rounded-full bg-neutral-200 flex items-center justify-center font-semibold text-xs text-neutral-700;
+  }
+
+  .child-header .avatar {
+    @apply bg-emerald-100 text-emerald-700;
+  }
+
+  .avatar-name {
+    @apply font-semibold text-neutral-900;
+  }
+
+  .header-menu {
+    @apply absolute top-11 right-0 bg-white border border-neutral-200 rounded-lg p-2 min-w-44 shadow-lg flex flex-col gap-1.5 z-50;
+  }
+
+  .header-menu[hidden] {
+    @apply hidden;
+  }
+
+  .header-menu a,
+  .header-menu button {
+    @apply text-left bg-transparent border-none px-2.5 py-2 rounded-lg text-neutral-900 cursor-pointer font-semibold text-sm hover:bg-neutral-100 transition-colors;
+  }
+
+  /* -------- Legal Nav -------- */
+  .legal-nav {
+    @apply flex gap-4 justify-center mb-3 flex-wrap;
+  }
+
+  .legal-nav a {
+    @apply text-xs text-neutral-600 no-underline hover:text-neutral-900 transition-colors;
+  }
+
+  .legal-copy {
+    @apply text-xs text-neutral-500;
+  }
+
+  /* -------- Skip Link -------- */
+  .skip-link {
+    @apply absolute -left-96 top-auto w-1 h-1 overflow-hidden;
+  }
+
+  .skip-link:focus {
+    @apply static w-auto h-auto px-3 py-2 bg-white outline-2 outline-offset-0 outline-accent-500;
+  }
+
+  /* -------- App Container -------- */
+  .app {
+    @apply flex-1 overflow-auto;
+  }
+
+  .app-content {
+    @apply max-w-6xl mx-auto w-full p-4 md:p-6;
+  }
+
+  /* -------- Cards -------- */
+  .card {
+    @apply bg-white rounded-lg p-6 shadow-sm border border-neutral-200 hover:shadow-md transition-shadow;
+  }
+
+  .card-compact {
+    @apply bg-white rounded-lg p-4 shadow-sm border border-neutral-200;
+  }
+
+  .card-elevated {
+    @apply bg-white rounded-lg p-6 shadow-lg border border-neutral-100;
+  }
+
+  /* -------- Buttons -------- */
+  .button {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer border border-transparent bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .button-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer border border-neutral-300 bg-white text-neutral-900 hover:bg-neutral-50 active:bg-neutral-100;
+  }
+
+  .button-subtle {
+    @apply inline-flex items-center justify-center px-3 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer bg-transparent text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200;
+  }
+
+  .button-success {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer border border-transparent bg-success-500 text-white hover:bg-success-600 active:bg-success-700;
+  }
+
+  .button-danger {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer border border-transparent bg-red-500 text-white hover:bg-red-600 active:bg-red-700;
+  }
+
+  /* -------- Forms -------- */
+  .form {
+    @apply space-y-4;
+  }
+
+  .field {
+    @apply flex flex-col gap-1.5;
+  }
+
+  .field label {
+    @apply text-sm font-semibold text-neutral-900;
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    @apply w-full px-3 py-2 rounded-lg border border-neutral-200 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+
+  .field textarea {
+    @apply resize min-h-28;
+  }
+
+  .field-error input,
+  .field-error textarea,
+  .field-error select {
+    @apply border-red-300 focus:ring-red-500;
+  }
+
+  .field-error-message {
+    @apply text-sm text-red-600 font-medium;
+  }
+
+  .password-wrap {
+    @apply relative flex items-center;
+  }
+
+  .password-field input {
+    @apply pr-10;
+  }
+
+  .password-toggle {
+    @apply absolute right-3 w-5 h-5 bg-no-repeat bg-center bg-contain cursor-pointer border-0 p-0 hover:opacity-70 transition-opacity;
+  }
+
+  .actions-row {
+    @apply flex gap-3 flex-wrap justify-center md:justify-start;
+  }
+
+  /* -------- Sections -------- */
+  .section {
+    @apply py-8;
+  }
+
+  .section-inner {
+    @apply max-w-6xl mx-auto px-4 md:px-6;
+  }
+
+  /* -------- Grid Layouts -------- */
+  .grid-auto {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+
+  .grid-cols-2-dense {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+
+  /* -------- Alerts -------- */
+  .alert {
+    @apply p-4 rounded-lg border;
+  }
+
+  .alert-info {
+    @apply bg-blue-50 border-blue-200 text-blue-800;
+  }
+
+  .alert-success {
+    @apply bg-green-50 border-green-200 text-green-800;
+  }
+
+  .alert-warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+  }
+
+  .alert-error {
+    @apply bg-red-50 border-red-200 text-red-800;
+  }
+
+  /* -------- Badges -------- */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-800;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .badge-danger {
+    @apply bg-red-100 text-red-800;
+  }
+
+  /* -------- Tables -------- */
+  .table {
+    @apply w-full border-collapse;
+  }
+
+  .table thead {
+    @apply bg-neutral-100 border-b border-neutral-200;
+  }
+
+  .table th {
+    @apply px-4 py-3 text-left text-sm font-semibold text-neutral-900;
+  }
+
+  .table tbody tr {
+    @apply border-b border-neutral-100 hover:bg-neutral-50 transition-colors;
+  }
+
+  .table td {
+    @apply px-4 py-3 text-sm text-neutral-700;
+  }
+
+  /* -------- Loading States -------- */
+  .spinner {
+    @apply inline-block w-4 h-4 border-2 border-neutral-300 border-t-primary-600 rounded-full animate-spin;
+  }
+
+  .skeleton {
+    @apply bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 rounded-lg animate-pulse;
+  }
+
+  /* -------- Family Hub Components -------- */
+  .family-section {
+    @apply mb-8 pb-8 border-b border-neutral-200 last:border-b-0;
+  }
+
+  .family-section-head {
+    @apply mb-4 flex items-center justify-between;
+  }
+
+  .family-list {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl;
+  }
+
+  .family-card {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 hover:shadow-md transition-shadow;
+  }
+
+  .family-card.is-clickable {
+    @apply cursor-pointer hover:border-primary-300 hover:bg-primary-50;
+  }
+
+  .family-card.is-add {
+    @apply border-2 border-dashed border-neutral-300 flex flex-col items-start justify-start min-h-32 hover:border-primary-400 p-4;
+  }
+
+  .family-card.is-add .family-person-head,
+  .family-card.is-add .family-child-head {
+    @apply mb-2;
+  }
+
+  .family-card.is-add .family-avatar {
+    @apply w-10 h-10;
+  }
+
+  .family-card.is-add .help {
+    @apply text-xs text-neutral-600;
+  }
+
+  .family-person-head,
+  .family-child-head {
+    @apply flex items-baseline gap-3 mb-3;
+  }
+
+  .family-avatar {
+    @apply w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-white text-lg leading-none;
+  }
+
+  .family-avatar.gold {
+    @apply bg-amber-400;
+  }
+
+  .family-avatar.orange {
+    @apply bg-orange-400;
+  }
+
+  .family-avatar.green {
+    @apply bg-emerald-500;
+  }
+
+  .family-avatar.neutral {
+    @apply bg-neutral-300 text-neutral-700;
+  }
+
+  .family-avatar svg {
+    @apply w-6 h-6;
+  }
+
+  .family-card-title {
+    @apply font-semibold text-neutral-900;
+  }
+
+  .child-icon {
+    @apply w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-neutral-100;
+  }
+
+  .child-icon img {
+    @apply w-8 h-8;
+  }
+
+  /* -------- Child Dashboard Components -------- */
+  .child-section {
+    @apply mb-8;
+  }
+
+  .subject-grid {
+    @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3;
+  }
+
+  .subject-tile {
+    @apply p-4 rounded-lg border border-neutral-200 text-center cursor-pointer hover:shadow-md transition-all font-semibold text-neutral-900 relative;
+  }
+
+  .subject-tile-header {
+    @apply flex items-center justify-center gap-2 mb-1;
+  }
+
+  .subject-tile.green {
+    @apply bg-emerald-50 border-emerald-300 text-emerald-900;
+  }
+
+  .subject-tile.yellow {
+    @apply bg-yellow-50 border-yellow-300 text-yellow-900;
+  }
+
+  .subject-tile.orange {
+    @apply bg-orange-50 border-orange-300 text-orange-900;
+  }
+
+  .subject-tile.none {
+    @apply bg-neutral-50 border-neutral-300 text-neutral-700;
+  }
+
+  .subject-tile.is-passive {
+    @apply opacity-60;
+  }
+
+  .subject-name {
+    @apply font-bold mb-1;
+  }
+
+  .subject-status {
+    @apply text-xs opacity-80;
+  }
+
+  .assignment-item,
+  .quiz-item,
+  .homework-item,
+  .message-item {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 mb-3 hover:shadow-sm transition-shadow;
+  }
+
+  .item-header {
+    @apply flex justify-between items-start mb-2;
+  }
+
+  .item-title {
+    @apply font-semibold text-neutral-900;
+  }
+
+  .item-meta {
+    @apply text-xs text-neutral-600 mt-1;
+  }
+
+  .item-badge {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .item-badge.pending {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .item-badge.completed {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+
+  .message-form {
+    @apply flex gap-2 mt-4;
+  }
+
+  .message-form select,
+  .message-form textarea {
+    @apply flex-1 px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500;
+  }
+
+  .message-form button {
+    @apply px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors;
+  }
+
+  /* -------- Helper Classes -------- */
+  .help {
+    @apply text-xs text-neutral-600;
+  }
+
+  /* -------- Subject/Topic Views -------- */
+  .subject-list {
+    @apply space-y-3;
+  }
+
+  .subject-row,
+  .topic-row {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-3;
+  }
+
+  .subject-row-content {
+    @apply flex items-center gap-2 flex-1;
+  }
+
+  /* -------- Modal -------- */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm;
+  }
+
+  .modal-content {
+    @apply bg-white rounded-xl p-6 max-w-lg w-full mx-4 shadow-2xl animate-slideUp;
+  }
+
+  /* -------- Select Child / Family Tree -------- */
+  .parent-section {
+    @apply mb-6 text-center;
+  }
+
+  .tree-connector {
+    @apply h-4 border-t-2 border-b-2 border-neutral-300 my-2 mx-auto w-0.5;
+  }
+
+  .children-section {
+    @apply mt-6;
+  }
+
+  .child-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+
+  .empty-state {
+    @apply p-8 text-center bg-neutral-50 rounded-lg border-2 border-dashed border-neutral-300;
+  }
+
+  /* -------- Quiz Session -------- */
+  .quiz-session {
+    @apply flex flex-col h-screen;
+  }
+
+  .quiz-question {
+    @apply bg-white border border-neutral-200 rounded-lg p-6 mb-6;
+  }
+
+  .quiz-options {
+    @apply space-y-3;
+  }
+
+  .quiz-option {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 cursor-pointer hover:bg-primary-50 hover:border-primary-300 transition-colors;
+  }
+
+  .quiz-option.selected {
+    @apply bg-primary-100 border-primary-500;
+  }
+
+  .quiz-option.correct {
+    @apply bg-emerald-100 border-emerald-500;
+  }
+
+  .quiz-option.incorrect {
+    @apply bg-red-100 border-red-500;
+  }
+
+  /* -------- Todo / Homework Item -------- */
+  .todo-item {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 flex items-center gap-3 hover:shadow-sm transition-all;
+  }
+
+  .todo-item input[type="checkbox"] {
+    @apply w-5 h-5 text-primary-600 rounded cursor-pointer;
+  }
+
+  .todo-item.completed {
+    @apply bg-neutral-50 opacity-70;
+  }
+
+  .todo-item.completed label {
+    @apply line-through text-neutral-500;
+  }
+
+  /* -------- Autocomplete -------- */
+  .autocomplete {
+    @apply absolute top-full left-0 right-0 bg-white border border-t-0 border-neutral-200 rounded-b-lg shadow-lg z-40 max-h-64 overflow-y-auto;
+  }
+
+  .autocomplete li {
+    @apply px-4 py-2 hover:bg-primary-50 cursor-pointer text-sm;
+  }
+
+  .autocomplete li.selected {
+    @apply bg-primary-100 font-semibold;
+  }
+
+  /* -------- Admin Panel -------- */
+  .admin-panel {
+    @apply max-w-6xl;
+  }
+
+  .admin-tabs {
+    @apply flex gap-2 mb-6 border-b border-neutral-200;
+  }
+
+  .admin-tabs button {
+    @apply px-4 py-2 font-semibold text-neutral-700 border-b-2 border-transparent hover:border-primary-300 transition-colors;
+  }
+
+  .admin-tabs button.active {
+    @apply border-primary-600 text-primary-600;
+  }
+
+  .admin-list {
+    @apply divide-y divide-neutral-200 border border-neutral-200 rounded-lg overflow-hidden;
+  }
+
+  .admin-row {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-4 p-4 hover:bg-neutral-50 transition-colors;
+  }
+
+  .admin-cell {
+    @apply flex flex-col justify-center;
+  }
+
+  .admin-name {
+    @apply font-semibold text-neutral-900;
+  }
+
+  /* -------- View/Page Wrappers -------- */
+  .child-dashboard {
+    @apply max-w-7xl;
+  }
+
+  .parent-profile,
+  .legal-consent,
+  .manual-quiz {
+    @apply max-w-4xl;
+  }
+
+  /* -------- Mission / Assignment Cards -------- */
+  .mission-list {
+    @apply space-y-3;
+  }
+
+  .mission-card {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 flex items-center justify-between gap-4 hover:shadow-md transition-all;
+  }
+
+  .mission-card.completed {
+    @apply bg-gradient-to-r from-emerald-50 to-emerald-50/50 border-emerald-200;
+  }
+
+  .mission-title {
+    @apply font-semibold text-neutral-900;
+  }
+
+  /* -------- Homework Items -------- */
+  .homework-list {
+    @apply space-y-3;
+  }
+
+  .homework-item {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 hover:shadow-sm transition-shadow;
+  }
+
+  .homework-item.is-complete {
+    @apply bg-neutral-50 opacity-60;
+  }
+
+  .homework-title {
+    @apply font-semibold text-neutral-900 mb-1;
+  }
+
+  /* -------- Tool Grid -------- */
+  .tool-grid {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+  }
+
+  .tool-card {
+    @apply bg-white border border-neutral-200 rounded-lg p-4;
+  }
+
+  .tool-card h3 {
+    @apply mb-3;
+  }
+
+  .tool-card textarea {
+    @apply w-full px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500;
+  }
+
+  /* -------- Todo Input/Items -------- */
+  .todo-list {
+    @apply space-y-2;
+  }
+
+  .todo-input {
+    @apply flex gap-2 mb-3;
+  }
+
+  .todo-input input {
+    @apply flex-1 px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm;
+  }
+
+  .todo-input button {
+    @apply px-3 py-2 button-secondary text-sm;
+  }
+
+  .todo-items {
+    @apply space-y-2;
+  }
+
+  /* -------- Message Thread -------- */
+  .message-thread {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 max-h-96 overflow-y-auto space-y-2;
+  }
+
+  .message {
+    @apply text-sm;
+  }
+
+  .message.sent {
+    @apply text-right;
+  }
+
+  .message.sent .message-bubble {
+    @apply bg-primary-600 text-white;
+  }
+
+  .message.received .message-bubble {
+    @apply bg-neutral-100 text-neutral-900;
+  }
+
+  .message-bubble {
+    @apply inline-block px-3 py-2 rounded-lg max-w-xs break-words;
+  }
+
+  .message-time {
+    @apply text-xs text-neutral-500 mt-1;
+  }
+
+  .message-row {
+    @apply mb-2;
+  }
+
+  .message-row.is-sent {
+    @apply flex justify-end;
+  }
+
+  .message-row.is-sent .message-bubble {
+    @apply bg-primary-600 text-white;
+  }
+
+  .message-row.is-received {
+    @apply flex justify-start;
+  }
+
+  .message-row.is-received .message-bubble {
+    @apply bg-neutral-100 text-neutral-900;
+  }
+
+  .message-bubble {
+    @apply inline-block px-3 py-2 rounded-lg max-w-xs break-words;
+  }
+
+  .message-meta {
+    @apply text-xs font-semibold opacity-70 mb-0.5;
+  }
+
+  /* -------- Quiz Wizard & Report -------- */
+  .quiz-wizard {
+    @apply max-w-4xl;
+  }
+
+  .quiz-report {
+    @apply max-w-4xl;
+  }
+
+  .quiz-wizard-step,
+  .quiz-report-section {
+    @apply mb-6 pb-6 border-b border-neutral-200 last:border-b-0;
+  }
+
+  .quiz-config {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 mb-4;
+  }
+
+  .quiz-config-item {
+    @apply flex flex-col gap-1.5;
+  }
+
+  .quiz-config-item label {
+    @apply text-sm font-semibold text-neutral-900;
+  }
+
+  .quiz-config-item input,
+  .quiz-config-item select {
+    @apply px-3 py-2 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500;
+  }
+
+  /* -------- Parent/Family Tree -------- */
+  .parent-card {
+    @apply flex items-center gap-4 bg-white border border-neutral-200 rounded-lg p-4;
+  }
+
+  .parent-avatar {
+    @apply w-12 h-12 rounded-full bg-primary-600 text-white font-bold flex items-center justify-center flex-shrink-0;
+  }
+
+  .parent-info {
+    @apply flex-1;
+  }
+
+  .parent-name {
+    @apply font-semibold text-neutral-900;
+  }
+
+  .parent-role {
+    @apply text-xs text-neutral-600;
+  }
+
+  .child-card {
+    @apply bg-white border border-neutral-200 rounded-lg p-4 text-center hover:shadow-md transition-all;
+  }
+
+  .child-card.is-clickable {
+    @apply cursor-pointer hover:border-primary-300 hover:bg-primary-50;
+  }
+
+  .child-card-header {
+    @apply flex items-center gap-3 mb-3;
+  }
+
+  .child-card-avatar {
+    @apply w-12 h-12 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0;
+  }
+
+  .child-card-avatar img {
+    @apply w-10 h-10 object-contain;
+  }
+
+  .child-card-info {
+    @apply flex-1 text-left;
+  }
+
+  .child-card-name {
+    @apply font-semibold text-neutral-900;
+  }
+
+  .child-card-pending {
+    @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 mt-2;
+  }
+
+  .child-card-meta {
+    @apply text-xs text-neutral-600 space-y-0.5 border-t border-neutral-200 pt-3 mt-3;
+  }
+
+  /* -------- Add Child / Parent Setup -------- */
+  .parent-setup {
+    @apply bg-primary-50 border border-primary-200 rounded-lg p-4 mb-6;
+  }
+
+  .autocomplete-item {
+    @apply px-4 py-2 hover:bg-primary-100 cursor-pointer transition-colors;
+  }
+
+  .autocomplete-foot {
+    @apply px-4 py-3 border-t border-neutral-200 text-center text-sm text-neutral-600 hover:bg-neutral-50;
+  }
+
+  /* -------- Icon Standardization -------- */
+  img[alt] {
+    @apply inline-block;
+  }
+
+  /* Child Identity / Header */
+  .child-identity {
+    @apply mb-6 pb-6 border-b border-neutral-200;
+  }
+
+  .child-identity-left {
+    @apply flex items-center gap-4;
+  }
+
+  .child-identity-icon {
+    @apply w-12 h-12 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 overflow-hidden;
+  }
+
+  .child-identity-icon img {
+    @apply w-10 h-10 object-contain;
+  }
+
+  .child-identity-text {
+    @apply flex-1;
+  }
+
+  .child-identity-name {
+    @apply text-2xl font-bold text-neutral-900;
+  }
+
+  .child-identity-meta {
+    @apply text-sm text-neutral-600 mt-1 space-y-1;
+  }
+
+  .group-edit {
+    @apply inline-flex items-center gap-2 mt-2;
+  }
+
+  .group-name {
+    @apply px-3 py-1 rounded-lg bg-primary-50 border border-primary-200 text-primary-700 font-medium;
+  }
+
+  .group-name.is-empty {
+    @apply text-neutral-400;
+  }
+
+  .group-edit-btn,
+  .group-save-btn {
+    @apply w-5 h-5 text-primary-600 bg-transparent border-0 p-0 cursor-pointer hover:opacity-70 transition-opacity;
+  }
+
+  .group-input {
+    @apply px-3 py-1 rounded-lg border border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium;
+  }
+
+  /* Standard Icon Sizes */
+  .icon-xs {
+    @apply w-4 h-4;
+  }
+
+  .icon-sm {
+    @apply w-6 h-6;
+  }
+
+  .icon-md {
+    @apply w-8 h-8;
+  }
+
+  .icon-lg {
+    @apply w-12 h-12;
+  }
+
+  .icon-xl {
+    @apply w-16 h-16;
+  }
+
+  /* Info Icon */
+  .info-icon {
+    @apply inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary-100 text-primary-700 text-xs font-bold cursor-help;
+  }
+
+  .info-icon::before {
+    content: 'i';
+  }
+
+  .info-icon-tooltip {
+    @apply relative inline-flex;
+  }
+
+  .info-icon-tooltip .tooltip-text {
+    @apply absolute left-0 bottom-full mb-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 pointer-events-none transition-opacity whitespace-nowrap z-10;
+  }
+
+  .info-icon-tooltip:hover .tooltip-text {
+    @apply opacity-100;
+  }
+}
+
+  /* Title Case - Proper Font */
+  @layer utilities {
+    .capitalize-words {
+      text-transform: capitalize;
+    }
+  }
+
+/* ============ Accessibility ============ */
+@layer utilities {
+  .sr-only {
+    @apply absolute w-1 h-1 p-0 -m-1 overflow-hidden whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+  }
+}
+
+/* ============ Global Animations ============ */
+@layer components {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(8px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-8px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 200ms ease-in-out;
+  }
+
+  .animate-slideUp {
+    animation: slideUp 300ms ease-out;
+  }
+
+  .animate-slideDown {
+    animation: slideDown 300ms ease-out;
+  }
+}

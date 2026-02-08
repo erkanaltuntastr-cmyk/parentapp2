@@ -708,7 +708,7 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   margin-top: var(--space-2);
 }
 .topic-scroll{
-  max-height: 300px;
+  max-height: min(45vh, 320px);
   overflow-y: auto;
   padding-right: 4px;
   flex-direction:column;
@@ -839,7 +839,14 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 }
 .suggest-list{
   margin: 8px 0;
-  padding-left: 18px;
+  padding-left: 20px;
+}
+.suggest-list li{
+  margin-bottom: 8px;
+  list-style: disc;
+}
+.suggest-list .check input{
+  margin-right: 8px;
 }
 .prompt-box{
   margin-top: var(--space-2);

@@ -8,6 +8,15 @@ import { setActiveChild } from '../usecases/children.js';
 import { getTeachersForChild } from '../usecases/teachers.js';
 import { sendMessage, getMessages } from '../usecases/messages.js';
 
+function toProperCase(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 function scoreToStatus(score){
   if (score === null || score === undefined) return 'none';
   if (score >= 80) return 'green';
@@ -60,7 +69,7 @@ export function ChildDashboard(){
 
   section.innerHTML = `
     <h1 class="h1">Learning Mode</h1>
-    <p class="subtitle">Focus on your missions and celebrate progress.</p>
+    <p class="subtitle">Focus On Your Missions And Celebrate Progress.</p>
 
     <div class="child-section">
       <h2 class="h2">Subject Grid</h2>
@@ -69,28 +78,33 @@ export function ChildDashboard(){
           const score = latestScores[s.name]?.score;
           const status = scoreToStatus(score);
           const label = status === 'green' ? 'High'
-            : status === 'yellow' ? 'Working towards'
-            : status === 'orange' ? 'Support needed'
-            : 'No data';
+            : status === 'yellow' ? 'Working Towards'
+            : status === 'orange' ? 'Support Needed'
+            : 'No Data';
           return `
             <div class="subject-tile ${status}${s.active ? '' : ' is-passive'}">
-              <div class="subject-name">${s.name}</div>
+              <div class="subject-tile-header">
+                <div class="subject-name">${s.name}</div>
+                <div class="info-icon-tooltip" title="Subject Information">
+                  <span class="info-icon"></span>
+                </div>
+              </div>
               <div class="subject-status">${label}${s.active ? '' : ' (Passive)'}</div>
             </div>
           `;
-        }).join('') : '<p class="help">No subjects assigned yet.</p>'}
+        }).join('') : '<p class="help">No Subjects Assigned Yet.</p>'}
       </div>
     </div>
 
     <div class="child-section" style="margin-top: var(--space-4);">
       <h2 class="h2">My Missions</h2>
       <div class="mission-list">
-        ${pending.length ? '' : '<p class="help">No missions yet.</p>'}
+        ${pending.length ? '' : '<p class="help">No Missions Yet.</p>'}
         ${pending.map(a => `
           <div class="mission-card">
             <div>
               <div class="mission-title">${a.subject} - ${a.topic}</div>
-              <div class="help">${a.type === 'exam' ? 'Exam' : 'Homework'} - Due ${a.deadline || 'No deadline'}</div>
+              <div class="help">${a.type === 'exam' ? 'Exam' : 'Homework'} - Due ${a.deadline || 'No Deadline'}</div>
             </div>
             <a class="button" href="#/take-task?id=${a.id}">Start</a>
           </div>
@@ -101,12 +115,12 @@ export function ChildDashboard(){
     <div class="child-section" style="margin-top: var(--space-4);">
       <h2 class="h2">My Quizzes</h2>
       <div class="mission-list">
-        ${quizPending.length ? '' : '<p class="help">No quizzes assigned yet.</p>'}
+        ${quizPending.length ? '' : '<p class="help">No Quizzes Assigned Yet.</p>'}
         ${quizPending.map(q => `
           <div class="mission-card">
             <div>
               <div class="mission-title">${q.subject} - ${q.topics?.[0] || 'Quiz'}</div>
-              <div class="help">Quiz \u2022 Timer ${q.config?.timerMinutes || 0} min</div>
+              <div class="help">Quiz \u2022 Timer ${q.config?.timerMinutes || 0} Min</div>
             </div>
             <a class="button" href="#/quiz-session?id=${q.id}">Start</a>
           </div>
@@ -125,14 +139,14 @@ export function ChildDashboard(){
               <button type="button" class="button-secondary" data-homework="${item.id}" ${item.status === 'completed' ? 'disabled' : ''}>Mark Complete</button>
             </div>
           </div>
-        `).join('') : '<p class="help">No homework items yet.</p>'}
+        `).join('') : '<p class="help">No Homework Items Yet.</p>'}
       </div>
     </div>
 
     <div class="child-section" style="margin-top: var(--space-4);">
       <h2 class="h2">Achievement Gallery</h2>
       <div class="mission-list">
-        ${(completed.length || quizCompleted.length) ? '' : '<p class="help">No achievements yet.</p>'}
+        ${(completed.length || quizCompleted.length) ? '' : '<p class="help">No Achievements Yet.</p>'}
         ${completed.map(a => `
           <div class="mission-card completed">
             <div>
@@ -171,7 +185,7 @@ export function ChildDashboard(){
         </div>
         <div class="tool-card">
           <h3 class="h3">Organizer</h3>
-          <p class="help">Planner is coming soon.</p>
+          <p class="help">Planner Is Coming Soon.</p>
         </div>
       </div>
     </div>
@@ -197,7 +211,7 @@ export function ChildDashboard(){
             <button type="submit" class="button">Send</button>
           </div>
         </form>
-      ` : '<p class="help">Messaging is available once a parent or teacher is linked.</p>'}
+      ` : '<p class="help">Messaging Is Available Once A Parent Or Teacher Is Linked.</p>'}
     </div>
   `;
 
@@ -242,7 +256,7 @@ export function ChildDashboard(){
 function renderMessages(username){
   const all = getMessages();
   const thread = all.filter(m => m.from === username || m.to === username);
-  if (!thread.length) return '<p class="help">No messages yet.</p>';
+  if (!thread.length) return '<p class="help">No Messages Yet.</p>';
   return thread.map(m => `
     <div class="message-row ${m.from === username ? 'is-sent' : 'is-received'}">
       <div class="message-bubble">
