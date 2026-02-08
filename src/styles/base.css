@@ -344,7 +344,8 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   align-items:center;
   justify-content:space-between;
   gap: var(--space-2);
-  margin: var(--space-3) 0;
+  margin: var(--space-4) 0;
+  padding: var(--space-2) 0;
 }
 .curriculum-toggle{ display:flex; align-items:center; gap: 8px; font-weight:600; }
 .curriculum-table{
@@ -466,6 +467,10 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   background: #F8FAFC;
   font-weight: 600;
 }
+.main-topic-row th,
+.main-topic-row td{
+  border-right: none !important;
+}
 .main-topic-row.is-future{
   color: #94A3B8;
   background: #F1F5F9;
@@ -481,6 +486,14 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 }
 .subtopic-row{
   background: #FFF;
+}
+.subtopic-row th,
+.subtopic-row td{
+  border-right: 1px solid var(--border-100);
+}
+.subtopic-row th:last-child,
+.subtopic-row td:last-child{
+  border-right: none;
 }
 .subtopic-row.is-complete{
   background: #F8FAFC;

@@ -276,12 +276,8 @@ export function SubjectCurriculum(){
           });
         rowsMarkup = mainTopics.map(group => {
           const mainChecked = Boolean(selection.main?.[group.main]);
-          const hasFuture = futureMains.has(group.main);
           const minWeek = group.weeks.length ? Math.min(...group.weeks) : null;
           const statusClass = minWeek ? (minWeek <= currentWeek ? ' is-complete' : ' is-future') : '';
-          const badge = hasFuture
-            ? `<span class="future-badge" title="Scheduled for later – may be advanced.">${clockIcon}<span>Future</span></span>`
-            : '';
           const mainRow = `
             <tr class="main-topic-row${statusClass}">
               <td class="main-topic-header">${toProperCase(group.main)}</td>
@@ -291,7 +287,6 @@ export function SubjectCurriculum(){
               <td class="select-cell-wrapper">
                 <div class="select-cell">
                   <input type="checkbox" data-role="main-toggle" data-main="${group.main}" ${mainChecked ? 'checked' : ''} />
-                  ${badge}
                 </div>
               </td>
             </tr>
