@@ -29,7 +29,8 @@ export function QuizWizard(){
   let subject = subjectParam ? decodeURIComponent(subjectParam) : '';
   let topics = [];
   let selectedGroups = [];
-  let showTopics = true;
+  let showTopics = false;
+  let step = 1;
   let feedbackPanel = null;
   let activeDraft = null;
 
@@ -94,11 +95,20 @@ export function QuizWizard(){
     renderTopics();
   };
 
+  const buildSummary = () => {
+    if (!selectedGroups.length) return 'Selected: none';
+    const parts = selectedGroups.map(group => `${group.main} (${group.subs.length})`);
+    return `Selected: ${parts.join(', ')}`;
+  };
+
   const renderTopics = () => {
     const topicWrap = section.querySelector('[data-role="topic-list"]');
+    const summaryEl = section.querySelector('[data-role="topic-summary"]');
     if (!topicWrap) return;
+    if (summaryEl) summaryEl.textContent = buildSummary();
+    const totalCount = topics.length || 0;
     if (!showTopics) {
-      topicWrap.innerHTML = '';
+      topicWrap.innerHTML = `<p class="help">${totalCount} topics selected.</p>`;
       return;
     }
     if (!selectedGroups.length) {
@@ -109,12 +119,12 @@ export function QuizWizard(){
       return;
     }
     topicWrap.innerHTML = selectedGroups.map(group => `
-      <div class="topic-group">
-        <div class="topic-group-title">${group.main}</div>
+      <details class="topic-accordion" open>
+        <summary>${group.main} (${group.subs.length})</summary>
         <div class="topic-subgrid">
           ${group.subs.map(sub => `<span class="topic-chip is-readonly">${sub}</span>`).join('')}
         </div>
-      </div>
+      </details>
     `).join('');
   };
 
@@ -213,25 +223,32 @@ export function QuizWizard(){
     return next;
   };
 
-  const renderFeedback = (feedback, prompt) => {
+  const renderFeedback = (feedback, prompt, applied = false) => {
     if (!feedbackPanel) feedbackPanel = section.querySelector('[data-role="feedback"]');
     if (!feedbackPanel) return;
+    const suggestions = feedback.suggestions || [];
+    const severity = suggestions.length ? 'amber' : 'green';
     feedbackPanel.innerHTML = `
-      <div class="feedback-card">
+      <div class="review-card ${severity}">
         <h3 class="h3">Pedagogical Review</h3>
         <p class="help">${feedback.feedback || 'No feedback available.'}</p>
-        ${feedback.suggestions && feedback.suggestions.length ? `
-          <ul class="suggest-list">
-            ${feedback.suggestions.map(item => `<li>${item}</li>`).join('')}
-          </ul>
+        ${suggestions.length ? `
+          <div class="suggest-list">
+            ${suggestions.map(item => `
+              <label class="check">
+                <input type="checkbox" disabled ${applied ? 'checked' : ''} />
+                <span>${item}</span>
+              </label>
+            `).join('')}
+          </div>
         ` : '<p class="help">No suggestions. Ready to proceed.</p>'}
-        <div class="prompt-box">
-          <div class="help">Prompt Preview</div>
+        <details class="prompt-accordion">
+          <summary>Prompt Preview</summary>
           <pre>${prompt}</pre>
-        </div>
-        <div class="actions-row">
-          <button type="button" class="button" data-role="apply-suggestions">Apply Suggestions</button>
-          <button type="button" class="button-secondary" data-role="proceed">Proceed Anyway</button>
+        </details>
+        <div class="actions-row review-actions">
+          <button type="button" class="button is-success" data-role="apply-suggestions">Apply Suggestions</button>
+          <button type="button" class="button is-amber" data-role="proceed">Proceed Anyway</button>
           <button type="button" class="button-secondary" data-role="back">Back to Edit</button>
         </div>
       </div>
@@ -248,7 +265,7 @@ export function QuizWizard(){
       updateQuizDraft(activeDraft.id, { config: updatedConfig, prompt: updatedPrompt });
       activeDraft = { ...activeDraft, config: updatedConfig, prompt: updatedPrompt };
       toast.success('Suggestions applied.');
-      renderFeedback(feedback, updatedPrompt);
+      renderFeedback(feedback, updatedPrompt, true);
     });
     feedbackPanel.querySelector('[data-role="proceed"]').addEventListener('click', () => {
       if (!activeDraft) return;
@@ -264,9 +281,15 @@ export function QuizWizard(){
     subject = subjectOptions[0].name;
   }
 
+  const pupilName = (child.name || 'Student').trim() || 'Student';
+  const yearLabel = child.year ? `Year ${child.year}` : 'Year -';
+  const subtitleText = subject
+    ? `${subject} - for ${pupilName}, ${yearLabel}`
+    : `For ${pupilName}, ${yearLabel}`;
+
   section.innerHTML = `
     <h1 class="h1">Quiz Wizard</h1>
-    <p class="subtitle">Configure quizzes with automatic presets or expert controls.</p>
+    <p class="subtitle">${subtitleText}</p>
 
     <div class="wizard-top">
       <div class="field">
@@ -275,103 +298,148 @@ export function QuizWizard(){
       </div>
     </div>
 
-    <div class="wizard-tabs">
-      <button type="button" class="tab-btn is-selected" data-mode="automatic">Automatic</button>
-      <button type="button" class="tab-btn" data-mode="quick">Quick Settings</button>
-      <button type="button" class="tab-btn" data-mode="expert">Expert</button>
-    </div>
+    <div class="wizard-step is-active" data-step="1">
+      <div class="wizard-tabs">
+        <button type="button" class="tab-btn is-selected" data-mode="automatic">Automatic</button>
+        <button type="button" class="tab-btn" data-mode="quick">Quick Settings</button>
+        <button type="button" class="tab-btn" data-mode="expert">Expert</button>
+      </div>
 
-    <div class="wizard-panel is-open" data-panel="automatic">
-      <div class="preset-grid">
-        ${Object.entries(presets).map(([key, item]) => `
-          <button type="button" class="preset-card${key === preset ? ' is-selected' : ''}" data-preset="${key}">
-            <h3 class="h3">${item.label}</h3>
-            <p class="help">${item.counts.multipleChoice + item.counts.gapFill + item.counts.openEnded} questions</p>
-            <p class="help">Timer ${item.timer} min</p>
-          </button>
-        `).join('')}
+      <div class="wizard-panel is-open" data-panel="automatic">
+        <div class="preset-grid">
+          ${Object.entries(presets).map(([key, item]) => `
+            <button type="button" class="preset-card${key === preset ? ' is-selected' : ''}" data-preset="${key}">
+              <h3 class="h3">${item.label}</h3>
+              <p class="help">${item.counts.multipleChoice + item.counts.gapFill + item.counts.openEnded} questions</p>
+              <p class="help">Timer ${item.timer} min</p>
+            </button>
+          `).join('')}
+        </div>
       </div>
-    </div>
 
-    <div class="wizard-panel" data-panel="quick">
-      <div class="field">
-        <label for="quickTotal">Total Questions</label>
-        <input id="quickTotal" type="number" min="1" value="${state.quickTotal}" />
-      </div>
-      <div class="field">
-        <label for="quickDifficulty">Difficulty</label>
-        <select id="quickDifficulty">
-          <option value="Easy">Easy</option>
-          <option value="Medium" selected>Medium</option>
-          <option value="Hard">Hard</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="quickTimer">Timer (minutes)</label>
-        <input id="quickTimer" type="number" min="5" value="${state.quickTimer}" />
-      </div>
-      <label class="check"><input id="quickHints" type="checkbox" checked /> Enable hints</label>
-      <label class="check"><input id="quickExplain" type="checkbox" checked /> Explain after answer</label>
-    </div>
-
-    <div class="wizard-panel" data-panel="expert">
-      <div class="expert-grid">
+      <div class="wizard-panel" data-panel="quick">
         <div class="field">
-          <label for="expertMC">Multiple Choice</label>
-          <input id="expertMC" type="number" min="0" value="${state.expertCounts.multipleChoice}" />
+          <label for="quickTotal">Total Questions</label>
+          <input id="quickTotal" type="number" min="1" value="${state.quickTotal}" />
         </div>
         <div class="field">
-          <label for="expertGap">Gap Fill</label>
-          <input id="expertGap" type="number" min="0" value="${state.expertCounts.gapFill}" />
-        </div>
-        <div class="field">
-          <label for="expertOpen">Open Ended</label>
-          <input id="expertOpen" type="number" min="0" value="${state.expertCounts.openEnded}" />
-        </div>
-        <div class="field">
-          <label for="expertOptions">MC Options (2-5)</label>
-          <input id="expertOptions" type="number" min="2" max="5" value="${state.expertOptions}" />
-        </div>
-        <div class="field">
-          <label for="expertDifficulty">Difficulty</label>
-          <select id="expertDifficulty">
+          <label for="quickDifficulty">Difficulty</label>
+          <select id="quickDifficulty">
             <option value="Easy">Easy</option>
             <option value="Medium" selected>Medium</option>
             <option value="Hard">Hard</option>
           </select>
         </div>
         <div class="field">
-          <label for="expertTimer">Timer (minutes)</label>
-          <input id="expertTimer" type="number" min="5" value="${state.expertTimer}" />
+          <label for="quickTimer">Timer (minutes)</label>
+          <input id="quickTimer" type="number" min="5" value="${state.quickTimer}" />
         </div>
+        <label class="check"><input id="quickHints" type="checkbox" checked /> Enable hints</label>
+        <label class="check"><input id="quickExplain" type="checkbox" checked /> Explain after answer</label>
       </div>
-      <label class="check"><input id="expertHints" type="checkbox" checked /> Enable hints</label>
-      <label class="check"><input id="expertExplain" type="checkbox" checked /> Explain after answer</label>
-    </div>
 
-    <div class="topic-section">
-      <div class="topic-head">
-        <h2 class="h2">Topics</h2>
-        <label class="check">
-          <input type="checkbox" data-role="toggle-topics" ${showTopics ? 'checked' : ''} />
-          Show selected topics
-        </label>
+      <div class="wizard-panel" data-panel="expert">
+        <div class="expert-grid">
+          <div class="field">
+            <label for="expertMC">Multiple Choice</label>
+            <input id="expertMC" type="number" min="0" value="${state.expertCounts.multipleChoice}" />
+          </div>
+          <div class="field">
+            <label for="expertGap">Gap Fill</label>
+            <input id="expertGap" type="number" min="0" value="${state.expertCounts.gapFill}" />
+          </div>
+          <div class="field">
+            <label for="expertOpen">Open Ended</label>
+            <input id="expertOpen" type="number" min="0" value="${state.expertCounts.openEnded}" />
+          </div>
+          <div class="field">
+            <label for="expertOptions">MC Options (2-5)</label>
+            <input id="expertOptions" type="number" min="2" max="5" value="${state.expertOptions}" />
+          </div>
+          <div class="field">
+            <label for="expertDifficulty">Difficulty</label>
+            <select id="expertDifficulty">
+              <option value="Easy">Easy</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="expertTimer">Timer (minutes)</label>
+            <input id="expertTimer" type="number" min="5" value="${state.expertTimer}" />
+          </div>
+        </div>
+        <label class="check"><input id="expertHints" type="checkbox" checked /> Enable hints</label>
+        <label class="check"><input id="expertExplain" type="checkbox" checked /> Explain after answer</label>
       </div>
-      <div class="topic-list" data-role="topic-list"></div>
+
+      <div class="step-actions">
+        <button type="button" class="button" data-step-next="2">Continue</button>
+      </div>
     </div>
 
-    <div class="field" style="margin-top: var(--space-3);">
-      <label for="wizardInstructions">Special Instructions</label>
-      <textarea id="wizardInstructions" rows="3" placeholder="Optional notes for the AI"></textarea>
+    <div class="wizard-step" data-step="2">
+      <div class="topic-section">
+        <div class="topic-head">
+          <div>
+            <h2 class="h2">Topics</h2>
+            <div class="topic-summary" data-role="topic-summary"></div>
+          </div>
+          <div class="topic-head-actions">
+            <label class="check">
+              <input type="checkbox" data-role="toggle-topics" ${showTopics ? 'checked' : ''} />
+              Show selected topics
+            </label>
+            <a class="button-secondary" href="#/subject?subject=${encodeURIComponent(subject || '')}">Edit topics</a>
+          </div>
+        </div>
+        <div class="topic-list topic-scroll" data-role="topic-list"></div>
+      </div>
+      <div class="step-actions">
+        <button type="button" class="button-secondary" data-step-prev="1">Back</button>
+        <button type="button" class="button" data-step-next="3">Continue</button>
+      </div>
     </div>
 
-    <div class="actions-row" style="margin-top: var(--space-3);">
-      <button type="button" class="button" data-role="send-ai">Send to AI</button>
-      <a class="button-secondary" href="#/family-hub">Back to Family Hub</a>
+    <div class="wizard-step" data-step="3">
+      <div class="field" style="margin-top: var(--space-3);">
+        <label for="wizardInstructions">Special Instructions</label>
+        <textarea id="wizardInstructions" rows="3" placeholder="e.g., Focus on vocabulary, include real-life examples"></textarea>
+      </div>
+      <div class="step-actions">
+        <button type="button" class="button-secondary" data-step-prev="2">Back</button>
+        <button type="button" class="button" data-role="send-ai">Send to AI</button>
+      </div>
     </div>
 
     <div class="feedback-panel" data-role="feedback"></div>
+    <div class="wizard-footer">
+      <a class="button-secondary" href="#/family-hub">Back to Family Hub</a>
+    </div>
   `;
+
+  const setStep = next => {
+    step = next;
+    section.querySelectorAll('.wizard-step').forEach(panel => {
+      panel.classList.toggle('is-active', panel.getAttribute('data-step') === String(step));
+    });
+  };
+
+  section.querySelectorAll('[data-step-next]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = Number(btn.getAttribute('data-step-next'));
+      if (Number.isFinite(next)) setStep(next);
+    });
+  });
+
+  section.querySelectorAll('[data-step-prev]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = Number(btn.getAttribute('data-step-prev'));
+      if (Number.isFinite(next)) setStep(next);
+    });
+  });
+
+  setStep(step);
 
   section.querySelectorAll('[data-mode]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -398,10 +466,13 @@ export function QuizWizard(){
     renderTopics();
   }
 
-  section.querySelector('[data-role="toggle-topics"]').addEventListener('change', e => {
-    showTopics = e.target.checked;
-    renderTopics();
-  });
+  const toggleTopics = section.querySelector('[data-role="toggle-topics"]');
+  if (toggleTopics) {
+    toggleTopics.addEventListener('change', e => {
+      showTopics = e.target.checked;
+      renderTopics();
+    });
+  }
 
   section.querySelector('#wizardInstructions').addEventListener('input', e => {
     state.instructions = e.target.value;
@@ -452,3 +523,4 @@ export function QuizWizard(){
 
   return section;
 }
+
