@@ -900,7 +900,7 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
   margin-top: var(--space-3);
 }
 .wizard-footer{
-  margin-top: var(--space-3);
+  margin-top: var(--space-6);
   text-align:center;
 }
 .static-field{
@@ -1123,6 +1123,28 @@ input:focus, select:focus, textarea:focus{ outline: 3px solid var(--outline); ou
 }
 .feedback-panel.is-open{
   display:block;
+}
+.feedback-content{
+  border: 1px solid var(--border-200);
+  border-radius: 14px;
+  padding: var(--space-4);
+  background: #F8FAFC;
+}
+.feedback-content .h3{
+  margin-top: 0;
+  color: var(--brand-700);
+}
+.feedback-text{
+  line-height: 1.6;
+  color: var(--ink-700);
+  margin: var(--space-2) 0 var(--space-3) 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.feedback-meta{
+  color: var(--muted-600);
+  font-size: var(--fs-300);
+  margin-top: var(--space-2);
 }
 .feedback-card{
   border: 1px solid var(--border-200);

@@ -3,6 +3,7 @@ import { listSubjects } from '../usecases/subjects.js';
 import { getTopics, loadCurriculum } from '../usecases/curriculum.js';
 import { getMockTopics } from '../usecases/mockCurriculum.js';
 import { getMockFeedback } from '../usecases/mockAi.js';
+import { callAI, createQuizFeedbackPrompt } from '../usecases/aiService.js';
 import { createPrompt } from '../utils/quizPrompt.js';
 import { createQuizDraft, createSessionFromDraft, updateQuizDraft } from '../usecases/quizzes.js';
 import { toast } from '../utils/toast.js';
@@ -12,13 +13,16 @@ function unique(list){
 }
 
 export function QuizWizard(){
+  const page = document.createElement('div');
+  page.className = 'quiz-wizard-page';
   const section = document.createElement('section');
   section.className = 'card quiz-wizard';
+  page.appendChild(section);
 
   const child = getActiveChild();
   if (!child) {
     location.hash = '#/add-child';
-    return section;
+    return page;
   }
 
   const params = new URLSearchParams(location.hash.split('?')[1] || '');
@@ -178,29 +182,71 @@ export function QuizWizard(){
       toast.error('Set at least one question.');
       return;
     }
-    const prompt = createPrompt({
-      child,
-      subject,
-      topics,
-      difficulty: config.difficulty,
-      instructions: state.instructions,
-      includeHints: config.includeHints,
-      includeExplanations: config.includeExplanations,
-      questionPlan: config.counts || { total: config.totalQuestions }
-    });
 
-    const draft = createQuizDraft({
-      childId: child.id,
-      subject,
-      topics,
-      mode,
-      config,
-      prompt
-    });
-    activeDraft = draft;
+    const btn = section.querySelector('[data-role="send-ai"]');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Calling AI...';
 
-    const feedback = await getMockFeedback();
-    renderFeedback(feedback, prompt);
+    try {
+      const prompt = createPrompt({
+        child,
+        subject,
+        topics,
+        difficulty: config.difficulty,
+        instructions: state.instructions,
+        includeHints: config.includeHints,
+        includeExplanations: config.includeExplanations,
+        questionPlan: config.counts || { total: config.totalQuestions }
+      });
+
+      const aiResult = await callAI({
+        childId: child.id,
+        messages: [{ role: 'user', content: prompt }],
+        systemPrompt: createQuizFeedbackPrompt(
+          subject,
+          config.difficulty || 'Medium',
+          `Year ${child.year || '-'}`
+        ),
+      });
+
+      if (aiResult.success) {
+        const feedbackPanel = section.querySelector('[data-role="feedback"]');
+        feedbackPanel.innerHTML = `
+          <div class="feedback-content">
+            <h3 class="h3">AI Feedback</h3>
+            <div class="feedback-text">${aiResult.content}</div>
+            <div class="feedback-meta"><small>Tokens: ${aiResult.tokens.total} | Remaining: ${aiResult.rateLimit.remaining}</small></div>
+          </div>
+        `;
+        feedbackPanel.style.display = 'block';
+        toast.success('AI feedback received! 🎯');
+
+        const draft = createQuizDraft({
+          childId: child.id,
+          subject,
+          topics,
+          mode,
+          config,
+          prompt
+        });
+        activeDraft = draft;
+      }
+    } catch (error) {
+      console.error('AI Error:', error);
+      const msg = error.message || 'Failed to get AI feedback';
+
+      if (msg.includes('Rate limited')) {
+        toast.error('1 request per minute per student');
+      } else if (msg.includes('not configured')) {
+        toast.error('Start server: npm --prefix server run dev');
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   };
 
   const applySuggestions = (config, suggestions) => {
@@ -405,9 +451,7 @@ export function QuizWizard(){
         <label class="check"><input id="expertExplain" type="checkbox" checked /> Explain after answer</label>
       </div>
 
-      <div class="step-actions">
-        <button type="button" class="button" data-step-next="2">Continue</button>
-      </div>
+      <div class="step-actions"></div>
     </div>
 
     <div class="wizard-step" data-step="2">
@@ -445,10 +489,12 @@ export function QuizWizard(){
     </div>
 
     <div class="feedback-panel" data-role="feedback"></div>
-    <div class="wizard-footer">
-      <a class="button-secondary" href="#/family-hub">Back to Family Hub</a>
-    </div>
   `;
+
+  const footer = document.createElement('div');
+  footer.className = 'wizard-footer';
+  footer.innerHTML = '<a class="button-secondary" href="#/family-hub">Back to Family Hub</a>';
+  page.appendChild(footer);
 
   const setStep = next => {
     step = next;
@@ -554,6 +600,6 @@ export function QuizWizard(){
 
   section.querySelector('[data-role="send-ai"]').addEventListener('click', handleSendToAi);
 
-  return section;
+  return page;
 }
 
